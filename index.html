@@ -79,12 +79,13 @@
     .error-box { background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: center; }
     .hidden { display: none !important; }
     .adjust-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 12px; cursor: pointer; }
-    .adjust-panel { position: absolute; top: 120px; right: 16px; background: rgba(0,0,0,0.8); border-radius: 12px; padding: 12px; z-index: 20; min-width: 150px; }
+    .adjust-panel { position: absolute; top: 120px; right: 16px; background: rgba(0,0,0,0.85); border-radius: 12px; padding: 16px; z-index: 20; min-width: 180px; }
     .adjust-panel.hidden { display: none; }
-    .adjust-row { margin-bottom: 12px; }
+    .adjust-row { margin-bottom: 16px; }
     .adjust-row:last-child { margin-bottom: 0; }
-    .adjust-label { font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 4px; display: block; }
+    .adjust-label { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 6px; display: block; letter-spacing: 0.5px; }
     .adjust-slider { width: 100%; }
+    .adjust-value { font-size: 11px; color: #ff6b35; float: right; }
   </style>
 </head>
 <body>
@@ -110,13 +111,13 @@
       <div class="control-group">
         <div class="control-header">
           <span class="control-label">ARC PATH</span>
-          <span class="control-value" id="arc-display">78°</span>
+          <span class="control-value" id="arc-display">72°</span>
         </div>
         <div class="arc-buttons" id="arc-buttons">
-          <button class="arc-btn" data-arc="72">72°</button>
+          <button class="arc-btn active" data-arc="72">72°</button>
           <button class="arc-btn" data-arc="74">74°</button>
           <button class="arc-btn" data-arc="76">76°</button>
-          <button class="arc-btn active" data-arc="78">78°</button>
+          <button class="arc-btn" data-arc="78">78°</button>
           <button class="arc-btn" data-arc="80">80°</button>
           <button class="arc-btn" data-arc="82">82°</button>
         </div>
@@ -142,7 +143,7 @@
         <p id="camera-error" style="color: #ff6b35; font-size: 12px; margin-top: 8px; display: none;"></p>
       </div>
     </div>
-    <div class="calibrate-instructions">Align the white dashed line with your mat's center line. Adjust ball position and arc size using the sliders after tapping "Confirm & Start".</div>
+    <div class="calibrate-instructions">Align the overlay arc with the orange arc printed on your mat. Use the Adjust panel after confirming to fine-tune position.</div>
     <div class="button-row">
       <button class="secondary-btn" id="calibrate-back-btn">Back</button>
       <button class="primary-btn" id="confirm-calibrate-btn" style="width: auto;">Confirm & Start</button>
@@ -158,22 +159,26 @@
       <div class="top-bar">
         <button class="back-btn" id="practice-back-btn">← Back</button>
         <button class="adjust-btn" id="adjust-toggle-btn">⚙ Adjust</button>
-        <div class="arc-badge" id="practice-arc-badge">78°</div>
+        <div class="arc-badge" id="practice-arc-badge">72°</div>
       </div>
       
       <!-- Adjustment Panel -->
       <div class="adjust-panel hidden" id="adjust-panel">
         <div class="adjust-row">
-          <label class="adjust-label">BALL POSITION (vertical)</label>
+          <label class="adjust-label">BALL POSITION <span class="adjust-value" id="ball-y-value">55%</span></label>
           <input type="range" class="adjust-slider" id="ball-y-slider" min="30" max="80" value="55">
         </div>
         <div class="adjust-row">
-          <label class="adjust-label">ARC SIZE</label>
-          <input type="range" class="adjust-slider" id="arc-size-slider" min="10" max="40" value="20">
+          <label class="adjust-label">ARC CURVE <span class="adjust-value" id="arc-curve-value">150</span></label>
+          <input type="range" class="adjust-slider" id="arc-curve-slider" min="50" max="400" value="150">
         </div>
         <div class="adjust-row">
-          <label class="adjust-label">ARC HEIGHT</label>
-          <input type="range" class="adjust-slider" id="arc-height-slider" min="5" max="40" value="15">
+          <label class="adjust-label">ARC LENGTH <span class="adjust-value" id="arc-length-value">35%</span></label>
+          <input type="range" class="adjust-slider" id="arc-length-slider" min="15" max="50" value="35">
+        </div>
+        <div class="adjust-row">
+          <label class="adjust-label">HORIZONTAL OFFSET <span class="adjust-value" id="arc-offset-value">0</span></label>
+          <input type="range" class="adjust-slider" id="arc-offset-slider" min="-50" max="50" value="0">
         </div>
       </div>
       
@@ -241,7 +246,7 @@
   <script>
     // State
     let bpm = 76;
-    let arcDegree = 78;
+    let arcDegree = 72;
     let metronomeOn = false;
     let cameraActive = false;
     let isRecording = false;
@@ -253,10 +258,11 @@
     let metronomeInterval = null;
     let animationFrame = null;
     
-    // Adjustable overlay settings
-    let ballYPercent = 55; // Ball position as % from top
-    let arcSizePercent = 20; // Arc radius as % of screen height
-    let arcHeightPercent = 15; // How far above ball the arc center is
+    // Adjustable overlay settings - tuned for WellStroke mat
+    let ballYPercent = 55;      // Ball position as % from top
+    let arcCurveRadius = 150;   // Radius of the arc curve (controls how curved it is)
+    let arcLengthPercent = 35;  // How long the arc extends (% of screen height)
+    let arcOffsetX = 0;         // Horizontal offset to align with mat
 
     // Elements
     const screens = {
@@ -330,14 +336,22 @@
     // Adjustment sliders
     document.getElementById('ball-y-slider').addEventListener('input', (e) => {
       ballYPercent = parseInt(e.target.value);
+      document.getElementById('ball-y-value').textContent = ballYPercent + '%';
       drawOverlay();
     });
-    document.getElementById('arc-size-slider').addEventListener('input', (e) => {
-      arcSizePercent = parseInt(e.target.value);
+    document.getElementById('arc-curve-slider').addEventListener('input', (e) => {
+      arcCurveRadius = parseInt(e.target.value);
+      document.getElementById('arc-curve-value').textContent = arcCurveRadius;
       drawOverlay();
     });
-    document.getElementById('arc-height-slider').addEventListener('input', (e) => {
-      arcHeightPercent = parseInt(e.target.value);
+    document.getElementById('arc-length-slider').addEventListener('input', (e) => {
+      arcLengthPercent = parseInt(e.target.value);
+      document.getElementById('arc-length-value').textContent = arcLengthPercent + '%';
+      drawOverlay();
+    });
+    document.getElementById('arc-offset-slider').addEventListener('input', (e) => {
+      arcOffsetX = parseInt(e.target.value);
+      document.getElementById('arc-offset-value').textContent = arcOffsetX;
       drawOverlay();
     });
 
@@ -351,7 +365,6 @@
         cameraActive = true;
         document.getElementById('calibrate-placeholder').classList.add('hidden');
         
-        // Wait for video to be ready then resize canvases
         videoElement.onloadedmetadata = () => {
           resizeCanvases();
           drawOverlay();
@@ -417,15 +430,13 @@
       }
     }
 
-    // Drawing overlay
+    // Drawing overlay - CORRECTED for putting stroke path
     function drawOverlay() {
-      // Draw on calibrate canvas
       const calibrateCanvas = document.getElementById('calibrate-canvas');
       if (calibrateCanvas && calibrateCanvas.width > 0) {
         drawOnCanvas(calibrateCanvas);
       }
       
-      // Draw on practice canvas
       const practiceCanvas = document.getElementById('practice-overlay');
       if (practiceCanvas && practiceCanvas.width > 0) {
         drawOnCanvas(practiceCanvas);
@@ -439,22 +450,53 @@
       
       ctx.clearRect(0, 0, width, height);
       
-      const centerX = width / 2;
+      const centerX = width / 2 + arcOffsetX;
       const ballY = height * (ballYPercent / 100);
-      const arcRadius = height * (arcSizePercent / 100);
-      const arcCenterY = ballY - height * (arcHeightPercent / 100);
+      const arcLength = height * (arcLengthPercent / 100);
       
-      // Arc angles based on arc degree setting
-      const halfArc = ((180 - arcDegree) / 2) * (Math.PI / 180);
-      const startAngle = Math.PI + halfArc;
-      const endAngle = 2 * Math.PI - halfArc;
+      // The arc curves to the RIGHT (inside) on backswing (below ball)
+      // and curves to the LEFT (inside) on follow-through (above ball)
+      // Arc center is to the right of the target line for a right-handed golfer
       
-      // Draw arc path
+      // Calculate arc center based on arc degree
+      // Lower degree = more curve, higher degree = straighter
+      // At 72°, the arc curves more; at 82°, it's nearly straight
+      const curveFactor = (90 - arcDegree) / 18; // 0 at 90°, 1 at 72°
+      const arcCenterX = centerX + (arcCurveRadius * curveFactor);
+      
+      // Calculate the actual radius to pass through ball position
+      const radius = Math.abs(arcCenterX - centerX) + 1;
+      
+      // Draw the arc path - vertical arc that curves right
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(255, 107, 53, 0.9)';
       ctx.lineWidth = 3;
       ctx.setLineDash([10, 6]);
-      ctx.arc(centerX, arcCenterY, arcRadius, startAngle, endAngle);
+      
+      // Draw arc as a series of points for more control
+      const numPoints = 50;
+      const startY = ballY + arcLength; // Backswing end (bottom)
+      const endY = ballY - arcLength;   // Follow-through end (top)
+      
+      ctx.beginPath();
+      for (let i = 0; i <= numPoints; i++) {
+        const t = i / numPoints;
+        const y = startY + (endY - startY) * t;
+        
+        // Calculate x offset based on position along stroke
+        // Maximum curve at ends, straight at impact (ball position)
+        const distFromBall = Math.abs(y - ballY) / arcLength;
+        const xOffset = distFromBall * distFromBall * arcCurveRadius * curveFactor * 0.3;
+        
+        // Curve goes to the right (for right-handed golfer viewing from above)
+        const x = centerX + xOffset;
+        
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
       ctx.stroke();
       ctx.setLineDash([]);
       
@@ -462,23 +504,35 @@
       const numTicks = 9;
       for (let i = 0; i <= numTicks; i++) {
         const t = i / numTicks;
-        const angle = startAngle + t * (endAngle - startAngle);
-        const x = centerX + arcRadius * Math.cos(angle);
-        const y = arcCenterY + arcRadius * Math.sin(angle);
-        const perpAngle = angle + Math.PI / 2;
+        const y = startY + (endY - startY) * t;
+        const distFromBall = Math.abs(y - ballY) / arcLength;
+        const xOffset = distFromBall * distFromBall * arcCurveRadius * curveFactor * 0.3;
+        const x = centerX + xOffset;
+        
+        // Calculate tangent angle at this point
+        const dy = (endY - startY) / numPoints;
+        const nextDistFromBall = Math.abs(y + dy - ballY) / arcLength;
+        const nextXOffset = nextDistFromBall * nextDistFromBall * arcCurveRadius * curveFactor * 0.3;
+        const dx = nextXOffset - xOffset;
+        
+        // Perpendicular to tangent
+        const tangentAngle = Math.atan2(dy, dx);
+        const perpAngle = tangentAngle + Math.PI / 2;
         const tickLength = 12;
         
+        const isCenter = i === Math.floor(numTicks / 2);
+        
         ctx.beginPath();
-        ctx.strokeStyle = i === Math.floor(numTicks / 2) ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 107, 53, 0.7)';
-        ctx.lineWidth = i === Math.floor(numTicks / 2) ? 4 : 2;
+        ctx.strokeStyle = isCenter ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 107, 53, 0.7)';
+        ctx.lineWidth = isCenter ? 4 : 2;
         ctx.moveTo(x - tickLength * Math.cos(perpAngle), y - tickLength * Math.sin(perpAngle));
         ctx.lineTo(x + tickLength * Math.cos(perpAngle), y + tickLength * Math.sin(perpAngle));
         ctx.stroke();
       }
       
-      // Draw center target line (white dashed)
+      // Draw center target line (white dashed) - straight vertical
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
       ctx.lineWidth = 2;
       ctx.setLineDash([8, 8]);
       ctx.moveTo(centerX, 0);
@@ -503,6 +557,15 @@
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.font = 'bold 16px system-ui';
       ctx.fillText(arcDegree + '° ARC', centerX, 30);
+      
+      // Direction arrow toward hole (top)
+      ctx.beginPath();
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      ctx.moveTo(centerX, 50);
+      ctx.lineTo(centerX - 8, 65);
+      ctx.lineTo(centerX + 8, 65);
+      ctx.closePath();
+      ctx.fill();
     }
 
     // Color detection
@@ -550,10 +613,17 @@
         const dy = pinkPos.y - bluePos.y;
         const angle = Math.atan2(dy, dx) * (180 / Math.PI);
         const faceAngle = 90 - Math.abs(angle);
-        const centerX = (bluePos.x + pinkPos.x) / 2;
-        const centerY = (bluePos.y + pinkPos.y) / 2;
+        const putterCenterX = (bluePos.x + pinkPos.x) / 2;
+        const putterCenterY = (bluePos.y + pinkPos.y) / 2;
         
-        trackingData.push({ timestamp: Date.now(), bluePos, pinkPos, centerX, centerY, faceAngle: faceAngle.toFixed(1) });
+        trackingData.push({ 
+          timestamp: Date.now(), 
+          bluePos, 
+          pinkPos, 
+          centerX: putterCenterX, 
+          centerY: putterCenterY, 
+          faceAngle: faceAngle.toFixed(1) 
+        });
       }
       
       animationFrame = requestAnimationFrame(processFrame);
@@ -612,7 +682,6 @@
       errorBox.classList.add('hidden');
       metricsGrid.classList.remove('hidden');
       
-      // Find impact point based on ball Y position
       const practiceCanvas = document.getElementById('practice-canvas');
       const ballY = practiceCanvas.height * (ballYPercent / 100);
       
@@ -705,3 +774,4 @@
   </script>
 </body>
 </html>
+
