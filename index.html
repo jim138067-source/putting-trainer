@@ -143,7 +143,7 @@
         <p id="camera-error" style="color: #ff6b35; font-size: 12px; margin-top: 8px; display: none;"></p>
       </div>
     </div>
-    <div class="calibrate-instructions">Align the overlay arc with the orange arc on your mat. The arc should curve slightly RIGHT of center line on backswing/follow-through.</div>
+    <div class="calibrate-instructions">Align the overlay arc with the orange arc on your mat. Use Adjust panel to fine-tune.</div>
     <div class="button-row">
       <button class="secondary-btn" id="calibrate-back-btn">Back</button>
       <button class="primary-btn" id="confirm-calibrate-btn" style="width: auto;">Confirm & Start</button>
@@ -258,15 +258,10 @@
     let metronomeInterval = null;
     let animationFrame = null;
     
-    // Mat specs: 32" total length, 0.5" curve at 14" from ball
-    // Arc length = 14" each direction = 28" total = 87.5% of 32" mat
-    // But we'll use ~44% each way to show 14" in each direction
-    // Curve = 0.5" at 14" = 0.5/7 = 7.14% of mat width at max
-    
-    let ballYPercent = 50;      // Ball at center of visible mat
-    let arcCurveAmount = 12;    // Pixels of curve (will tune with slider)
-    let arcLengthPercent = 44;  // 14" / 32" ≈ 44% each direction
-    let arcOffsetX = 0;         // Horizontal offset
+    let ballYPercent = 50;
+    let arcCurveAmount = 12;
+    let arcLengthPercent = 44;
+    let arcOffsetX = 0;
 
     const screens = {
       setup: document.getElementById('setup-screen'),
@@ -301,7 +296,6 @@
       }
     }
 
-    // BPM Controls
     const bpmSlider = document.getElementById('bpm-slider');
     const bpmDisplay = document.getElementById('bpm-display');
     
@@ -317,7 +311,6 @@
     document.getElementById('bpm-minus').addEventListener('click', () => updateBpm(bpm - 1));
     document.getElementById('bpm-plus').addEventListener('click', () => updateBpm(bpm + 1));
 
-    // Arc Controls
     document.getElementById('arc-buttons').addEventListener('click', (e) => {
       if (e.target.dataset.arc) {
         arcDegree = parseInt(e.target.dataset.arc);
@@ -329,7 +322,6 @@
       }
     });
 
-    // Adjustment panel
     document.getElementById('adjust-toggle-btn').addEventListener('click', () => {
       document.getElementById('adjust-panel').classList.toggle('hidden');
     });
@@ -355,7 +347,6 @@
       drawOverlay();
     });
 
-    // Camera
     async function startCamera(videoElement) {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
@@ -385,7 +376,6 @@
       cameraActive = false;
     }
 
-    // Audio
     function initAudio() {
       if (!audioContext) {
         audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -430,7 +420,7 @@
       }
     }
 
-    // Drawing - ARC CURVES TO THE RIGHT
+    // Drawing - ARC CURVES TO THE LEFT (NEGATIVE X)
     function drawOverlay() {
       const calibrateCanvas = document.getElementById('calibrate-canvas');
       if (calibrateCanvas && calibrateCanvas.width > 0) {
@@ -454,26 +444,21 @@
       const ballY = height * (ballYPercent / 100);
       const arcLength = height * (arcLengthPercent / 100);
       
-      // Curve factor based on arc degree (72° = more curve, 82° = less)
       const curveFactor = (90 - arcDegree) / 18;
       const maxCurve = arcCurveAmount * curveFactor;
       
       const numPoints = 60;
-      const startY = ballY + arcLength; // Backswing (bottom)
-      const endY = ballY - arcLength;   // Follow-through (top)
+      const startY = ballY + arcLength;
+      const endY = ballY - arcLength;
       
-      // Store points for tick mark calculations
       const points = [];
       for (let i = 0; i <= numPoints; i++) {
         const t = i / numPoints;
         const y = startY + (endY - startY) * t;
-        
-        // Parabolic curve: max at ends, 0 at ball
-        // distFromBall goes from 1 (at start) to 0 (at ball) to 1 (at end)
         const distFromBall = Math.abs(y - ballY) / arcLength;
         
-        // CURVE TO THE RIGHT (positive X offset)
-        const xOffset = maxCurve * distFromBall * distFromBall;
+        // CURVE TO THE LEFT (NEGATIVE X offset)
+        const xOffset = -maxCurve * distFromBall * distFromBall;
         const x = centerX + xOffset;
         
         points.push({ x, y, distFromBall });
@@ -496,7 +481,6 @@
       ctx.setLineDash([]);
       
       // Draw SQUARE TO PATH tick marks
-      // The tick should be perpendicular to the tangent of the curve at each point
       const numTicks = 9;
       const tickLength = 14;
       
@@ -505,17 +489,13 @@
         const idx = Math.floor(t * (points.length - 1));
         const point = points[idx];
         
-        // Calculate tangent by looking at neighboring points
         const prevIdx = Math.max(0, idx - 1);
         const nextIdx = Math.min(points.length - 1, idx + 1);
         
         const dx = points[nextIdx].x - points[prevIdx].x;
         const dy = points[nextIdx].y - points[prevIdx].y;
         
-        // Tangent angle
         const tangentAngle = Math.atan2(dy, dx);
-        
-        // Perpendicular to tangent (square to path)
         const perpAngle = tangentAngle + Math.PI / 2;
         
         const isCenter = i === Math.floor(numTicks / 2);
@@ -534,7 +514,7 @@
         ctx.stroke();
       }
       
-      // Draw center target line (white dashed)
+      // Draw center target line
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.lineWidth = 2;
@@ -544,25 +524,22 @@
       ctx.stroke();
       ctx.setLineDash([]);
       
-      // Draw ball position circle
+      // Draw ball circle
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
       ctx.lineWidth = 3;
       ctx.arc(centerX, ballY, 20, 0, 2 * Math.PI);
       ctx.stroke();
       
-      // Ball label
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
       ctx.font = 'bold 14px system-ui';
       ctx.textAlign = 'center';
       ctx.fillText('BALL', centerX, ballY + 38);
       
-      // Arc degree label
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.font = 'bold 16px system-ui';
       ctx.fillText(arcDegree + '° ARC', centerX, 30);
       
-      // Arrow toward hole
       ctx.beginPath();
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
       ctx.moveTo(centerX, 50);
@@ -572,7 +549,6 @@
       ctx.fill();
     }
 
-    // Color detection
     function detectColorPosition(imageData, targetColor, width, height) {
       const data = imageData.data;
       let sumX = 0, sumY = 0, count = 0;
@@ -711,7 +687,6 @@
       showScreen('review');
     }
 
-    // Speed controls
     document.getElementById('speed-buttons').addEventListener('click', (e) => {
       if (e.target.dataset.speed) {
         const speed = parseFloat(e.target.dataset.speed);
@@ -721,7 +696,6 @@
       }
     });
 
-    // Navigation
     document.getElementById('start-setup-btn').addEventListener('click', async () => {
       showScreen('calibrate');
       const video = document.getElementById('calibrate-video');
@@ -773,4 +747,3 @@
   </script>
 </body>
 </html>
-
