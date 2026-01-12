@@ -125,7 +125,7 @@
     </div>
     <button class="primary-btn" id="start-setup-btn">Start Setup</button>
     <div class="info-box">
-      <p class="info-text"><strong>Equipment needed:</strong><br>• Phone mounted 30" above mat (landscape, top toward hole)<br>• Blue sticker on putter heel<br>• Pink sticker on putter toe</p>
+      <p class="info-text"><strong>Setup:</strong><br>• Phone landscape, top toward hole<br>• Mount 30" above mat<br>• Blue sticker on heel, pink on toe</p>
     </div>
   </div>
 
@@ -143,7 +143,7 @@
         <p id="camera-error" style="color: #ff6b35; font-size: 12px; margin-top: 8px; display: none;"></p>
       </div>
     </div>
-    <div class="calibrate-instructions">Align the overlay arc with the orange arc on your mat. Use Adjust panel to fine-tune.</div>
+    <div class="calibrate-instructions">Align overlay arc with orange arc on mat. Use Adjust to fine-tune.</div>
     <div class="button-row">
       <button class="secondary-btn" id="calibrate-back-btn">Back</button>
       <button class="primary-btn" id="confirm-calibrate-btn" style="width: auto;">Confirm & Start</button>
@@ -162,11 +162,10 @@
         <div class="arc-badge" id="practice-arc-badge">72°</div>
       </div>
       
-      <!-- Adjustment Panel -->
       <div class="adjust-panel hidden" id="adjust-panel">
         <div class="adjust-row">
-          <label class="adjust-label">BALL POSITION <span class="adjust-value" id="ball-y-value">50%</span></label>
-          <input type="range" class="adjust-slider" id="ball-y-slider" min="30" max="70" value="50">
+          <label class="adjust-label">BALL POSITION <span class="adjust-value" id="ball-x-value">50%</span></label>
+          <input type="range" class="adjust-slider" id="ball-x-slider" min="30" max="70" value="50">
         </div>
         <div class="adjust-row">
           <label class="adjust-label">ARC CURVE <span class="adjust-value" id="arc-curve-value">12</span></label>
@@ -177,7 +176,7 @@
           <input type="range" class="adjust-slider" id="arc-length-slider" min="30" max="50" value="44">
         </div>
         <div class="adjust-row">
-          <label class="adjust-label">HORIZONTAL SHIFT <span class="adjust-value" id="arc-offset-value">0</span></label>
+          <label class="adjust-label">VERTICAL SHIFT <span class="adjust-value" id="arc-offset-value">0</span></label>
           <input type="range" class="adjust-slider" id="arc-offset-slider" min="-50" max="50" value="0">
         </div>
       </div>
@@ -258,10 +257,13 @@
     let metronomeInterval = null;
     let animationFrame = null;
     
-    let ballYPercent = 50;
-    let arcCurveAmount = 12;
-    let arcLengthPercent = 44;
-    let arcOffsetX = 0;
+    // LANDSCAPE orientation: hole is to the LEFT (west)
+    // Stroke path goes LEFT-RIGHT on screen
+    // Arc curves SOUTH (down on screen, positive Y)
+    let ballXPercent = 50;      // Ball horizontal position
+    let arcCurveAmount = 12;    // Pixels of curve (in Y direction)
+    let arcLengthPercent = 44;  // Arc extends this % of width each direction
+    let arcOffsetY = 0;         // Vertical offset
 
     const screens = {
       setup: document.getElementById('setup-screen'),
@@ -326,9 +328,9 @@
       document.getElementById('adjust-panel').classList.toggle('hidden');
     });
 
-    document.getElementById('ball-y-slider').addEventListener('input', (e) => {
-      ballYPercent = parseInt(e.target.value);
-      document.getElementById('ball-y-value').textContent = ballYPercent + '%';
+    document.getElementById('ball-x-slider').addEventListener('input', (e) => {
+      ballXPercent = parseInt(e.target.value);
+      document.getElementById('ball-x-value').textContent = ballXPercent + '%';
       drawOverlay();
     });
     document.getElementById('arc-curve-slider').addEventListener('input', (e) => {
@@ -342,8 +344,8 @@
       drawOverlay();
     });
     document.getElementById('arc-offset-slider').addEventListener('input', (e) => {
-      arcOffsetX = parseInt(e.target.value);
-      document.getElementById('arc-offset-value').textContent = arcOffsetX;
+      arcOffsetY = parseInt(e.target.value);
+      document.getElementById('arc-offset-value').textContent = arcOffsetY;
       drawOverlay();
     });
 
@@ -362,7 +364,7 @@
         };
         return true;
       } catch (err) {
-        document.getElementById('camera-error').textContent = 'Camera access denied. Please allow camera permissions.';
+        document.getElementById('camera-error').textContent = 'Camera access denied.';
         document.getElementById('camera-error').style.display = 'block';
         return false;
       }
@@ -420,7 +422,7 @@
       }
     }
 
-    // Drawing - ARC CURVES TO THE LEFT (NEGATIVE X)
+    // LANDSCAPE drawing - stroke goes LEFT-RIGHT, arc curves DOWN (south)
     function drawOverlay() {
       const calibrateCanvas = document.getElementById('calibrate-canvas');
       if (calibrateCanvas && calibrateCanvas.width > 0) {
@@ -440,26 +442,30 @@
       
       ctx.clearRect(0, 0, width, height);
       
-      const centerX = width / 2 + arcOffsetX;
-      const ballY = height * (ballYPercent / 100);
-      const arcLength = height * (arcLengthPercent / 100);
+      // Ball position - horizontal center of mat
+      const ballX = width * (ballXPercent / 100);
+      const centerY = height / 2 + arcOffsetY;
+      
+      // Arc length extends left and right from ball
+      const arcLength = width * (arcLengthPercent / 100);
       
       const curveFactor = (90 - arcDegree) / 18;
       const maxCurve = arcCurveAmount * curveFactor;
       
       const numPoints = 60;
-      const startY = ballY + arcLength;
-      const endY = ballY - arcLength;
+      // Stroke goes from RIGHT (backswing) to LEFT (follow-through toward hole)
+      const startX = ballX + arcLength;  // Backswing (right side)
+      const endX = ballX - arcLength;    // Follow-through (left side, toward hole)
       
       const points = [];
       for (let i = 0; i <= numPoints; i++) {
         const t = i / numPoints;
-        const y = startY + (endY - startY) * t;
-        const distFromBall = Math.abs(y - ballY) / arcLength;
+        const x = startX + (endX - startX) * t;
+        const distFromBall = Math.abs(x - ballX) / arcLength;
         
-        // CURVE TO THE LEFT (NEGATIVE X offset)
-        const xOffset = -maxCurve * distFromBall * distFromBall;
-        const x = centerX + xOffset;
+        // CURVE SOUTH (positive Y = down on screen)
+        const yOffset = maxCurve * distFromBall * distFromBall;
+        const y = centerY + yOffset;
         
         points.push({ x, y, distFromBall });
       }
@@ -514,13 +520,13 @@
         ctx.stroke();
       }
       
-      // Draw center target line
+      // Draw center target line (horizontal, through ball toward hole)
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
       ctx.lineWidth = 2;
       ctx.setLineDash([8, 8]);
-      ctx.moveTo(centerX, 0);
-      ctx.lineTo(centerX, height);
+      ctx.moveTo(0, centerY);
+      ctx.lineTo(width, centerY);
       ctx.stroke();
       ctx.setLineDash([]);
       
@@ -528,25 +534,32 @@
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
       ctx.lineWidth = 3;
-      ctx.arc(centerX, ballY, 20, 0, 2 * Math.PI);
+      ctx.arc(ballX, centerY, 20, 0, 2 * Math.PI);
       ctx.stroke();
       
       ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
       ctx.font = 'bold 14px system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText('BALL', centerX, ballY + 38);
+      ctx.fillText('BALL', ballX, centerY + 38);
       
+      // Arc label
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
       ctx.font = 'bold 16px system-ui';
-      ctx.fillText(arcDegree + '° ARC', centerX, 30);
+      ctx.fillText(arcDegree + '° ARC', width / 2, 30);
       
+      // Arrow toward hole (pointing LEFT)
       ctx.beginPath();
       ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.moveTo(centerX, 50);
-      ctx.lineTo(centerX - 8, 65);
-      ctx.lineTo(centerX + 8, 65);
+      ctx.moveTo(30, centerY);
+      ctx.lineTo(45, centerY - 8);
+      ctx.lineTo(45, centerY + 8);
       ctx.closePath();
       ctx.fill();
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.font = '12px system-ui';
+      ctx.textAlign = 'left';
+      ctx.fillText('HOLE', 50, centerY + 4);
     }
 
     function detectColorPosition(imageData, targetColor, width, height) {
@@ -591,7 +604,8 @@
         const dx = pinkPos.x - bluePos.x;
         const dy = pinkPos.y - bluePos.y;
         const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-        const faceAngle = 90 - Math.abs(angle);
+        // For landscape with hole on left, square face = angle near 0 or 180
+        const faceAngle = Math.abs(angle) > 90 ? 180 - Math.abs(angle) : Math.abs(angle);
         const putterCenterX = (bluePos.x + pinkPos.x) / 2;
         const putterCenterY = (bluePos.y + pinkPos.y) / 2;
         
@@ -651,7 +665,7 @@
       if (trackingData.length < 10) {
         errorBox.classList.remove('hidden');
         metricsGrid.classList.add('hidden');
-        document.getElementById('error-message').textContent = 'Not enough tracking data. Make sure stickers are visible.';
+        document.getElementById('error-message').textContent = 'Not enough tracking data.';
         showScreen('review');
         return;
       }
@@ -659,12 +673,13 @@
       errorBox.classList.add('hidden');
       metricsGrid.classList.remove('hidden');
       
+      // For landscape, ball X position determines impact
       const practiceCanvas = document.getElementById('practice-canvas');
-      const ballY = practiceCanvas.height * (ballYPercent / 100);
+      const ballX = practiceCanvas.width * (ballXPercent / 100);
       
       let impactIndex = 0, minDist = Infinity;
       trackingData.forEach((point, index) => {
-        const dist = Math.abs(point.centerY - ballY);
+        const dist = Math.abs(point.centerX - ballX);
         if (dist < minDist) { minDist = dist; impactIndex = index; }
       });
       
@@ -672,9 +687,9 @@
       const tempo = ((impactPoint.timestamp - trackingData[0].timestamp) / 1000).toFixed(2);
       const faceAtImpact = parseFloat(impactPoint.faceAngle);
       
-      const centerXValues = trackingData.slice(0, impactIndex).map(p => p.centerX);
-      const avgX = centerXValues.reduce((a, b) => a + b, 0) / centerXValues.length;
-      const variance = centerXValues.reduce((sum, x) => sum + Math.pow(x - avgX, 2), 0) / centerXValues.length;
+      const centerYValues = trackingData.slice(0, impactIndex).map(p => p.centerY);
+      const avgY = centerYValues.reduce((a, b) => a + b, 0) / centerYValues.length;
+      const variance = centerYValues.reduce((sum, y) => sum + Math.pow(y - avgY, 2), 0) / centerYValues.length;
       const pathDeviation = Math.sqrt(variance).toFixed(1);
       
       const faceMetric = document.getElementById('face-metric');
@@ -747,4 +762,3 @@
   </script>
 </body>
 </html>
-
