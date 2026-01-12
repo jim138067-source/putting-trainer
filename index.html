@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Stroke Trainer - Putting Practice</title>
+  <title>Stroke Trainer</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { 
@@ -21,16 +21,14 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     .title-small { font-size: 20px; color: #fff; font-weight: 600; letter-spacing: 2px; margin: 0; }
-    .subtitle { font-size: 12px; color: rgba(255,255,255,0.5); margin: 0; letter-spacing: 4px; }
     .setup-card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 24px; margin-bottom: 24px; }
     .control-group { margin-bottom: 24px; }
     .control-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .control-label { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
     .control-value { font-size: 32px; font-weight: 700; color: #ff6b35; }
-    .control-unit { font-size: 14px; color: rgba(255,255,255,0.5); }
     input[type="range"] { 
       width: 100%; height: 8px; border-radius: 4px; appearance: none; cursor: pointer; margin-bottom: 8px;
-      background: linear-gradient(to right, #ff6b35 0%, #ff6b35 53%, rgba(255,255,255,0.2) 53%, rgba(255,255,255,0.2) 100%);
+      background: rgba(255,255,255,0.2);
     }
     input[type="range"]::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; cursor: pointer; }
     .slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.4); }
@@ -43,8 +41,8 @@
     .secondary-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 14px 24px; color: #fff; font-size: 14px; cursor: pointer; }
     .info-box { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; border-left: 3px solid rgba(255, 107, 53, 0.5); }
     .info-text { font-size: 13px; color: rgba(255,255,255,0.6); margin: 0; line-height: 1.8; }
+    
     .camera-container { position: relative; width: 100%; aspect-ratio: 3/4; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
-    .camera-container-full { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; }
     .video { width: 100%; height: 100%; object-fit: cover; }
     .overlay-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
     .camera-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); }
@@ -52,40 +50,106 @@
     .camera-hint { margin-top: 12px; color: rgba(255,255,255,0.5); font-size: 14px; }
     .calibrate-instructions { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 16px; font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; }
     .button-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-    .top-bar { position: absolute; top: 0; left: 0; right: 0; padding: 16px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent); z-index: 10; }
-    .back-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 16px; color: #fff; font-size: 14px; cursor: pointer; }
-    .arc-badge { background: rgba(255, 107, 53, 0.9); border-radius: 8px; padding: 8px 16px; color: #fff; font-size: 14px; font-weight: 600; }
-    .metronome-bar { position: absolute; top: 70px; right: 16px; z-index: 10; }
-    .metronome-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 10px 16px; color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; }
-    .metronome-btn.active { border-color: #4ade80; }
-    .metronome-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; transition: background-color 0.1s; }
-    .bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; display: flex; justify-content: center; gap: 12px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 10; }
-    .record-btn { background: linear-gradient(135deg, #ff6b35, #e55a2b); border: none; border-radius: 30px; padding: 16px 32px; color: #fff; font-size: 16px; font-weight: 600; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; }
-    .stop-btn { background: #ff3b30; border: none; border-radius: 30px; padding: 16px 32px; color: #fff; font-size: 16px; font-weight: 600; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; }
-    .record-dot { width: 12px; height: 12px; border-radius: 50%; background: #fff; }
-    .stop-square { width: 12px; height: 12px; background: #fff; border-radius: 2px; }
-    .review-video-container { width: 100%; aspect-ratio: 3/4; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+    
+    /* Practice screen - 3 column layout */
+    .practice-layout { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; background: #000; }
+    
+    .metrics-panel { 
+      width: 85px; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; 
+      padding: 8px 4px; gap: 6px; z-index: 20; overflow-y: auto;
+    }
+    .metric-box { 
+      background: rgba(30,30,30,0.95); border-radius: 8px; padding: 8px 4px; 
+      text-align: center; border-left: 3px solid #ff6b35; 
+    }
+    .metric-box.highlight { border-left-color: #4ade80; background: rgba(74,222,128,0.1); }
+    .metric-box-label { font-size: 8px; color: #ff6b35; letter-spacing: 0.5px; margin-bottom: 2px; text-transform: uppercase; }
+    .metric-box.highlight .metric-box-label { color: #4ade80; }
+    .metric-box-value { font-size: 22px; font-weight: 700; color: #fff; line-height: 1; }
+    .metric-box-unit { font-size: 9px; color: rgba(255,255,255,0.5); }
+    
+    .camera-area { flex: 1; position: relative; overflow: hidden; }
+    .camera-area video, .camera-area canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+    .camera-area video { object-fit: cover; }
+    #practice-overlay { z-index: 5; }
+    #trace-canvas { z-index: 6; }
+    
+    .controls-panel { 
+      width: 85px; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; 
+      padding: 8px 4px; gap: 8px; z-index: 20; align-items: center; 
+    }
+    .ctrl-btn { 
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.3); 
+      border-radius: 8px; padding: 12px 8px; color: #fff; font-size: 12px; 
+      cursor: pointer; width: 72px; text-align: center; font-weight: 600;
+    }
+    .ctrl-btn.active { background: #4ade80; border-color: #4ade80; color: #000; }
+    .ctrl-btn.recording { background: #ff3b30; border-color: #ff3b30; animation: pulse 1s infinite; }
+    .ctrl-btn.stop { background: #ff3b30; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+    
+    .panel-box { 
+      background: rgba(30,30,30,0.95); border-radius: 8px; padding: 10px 8px; 
+      text-align: center; width: 72px;
+    }
+    .panel-label { font-size: 9px; color: rgba(255,255,255,0.5); margin-bottom: 4px; }
+    .panel-value { font-size: 16px; font-weight: 700; color: #fff; }
+    
+    .back-btn-float { 
+      position: absolute; top: 12px; left: 12px; background: rgba(0,0,0,0.7); 
+      border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; padding: 8px 16px; 
+      color: #fff; font-size: 14px; cursor: pointer; z-index: 25; 
+    }
+    
+    /* Impact display - shows prominently when stroke detected */
+    .impact-display {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.85); border-radius: 16px; padding: 20px 32px;
+      text-align: center; z-index: 30; display: none;
+    }
+    .impact-display.show { display: block; animation: fadeInOut 3s forwards; }
+    @keyframes fadeInOut { 0% { opacity: 0; } 10% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+    .impact-label { font-size: 12px; color: rgba(255,255,255,0.6); margin-bottom: 8px; }
+    .impact-value { font-size: 48px; font-weight: 700; }
+    .impact-value.square { color: #4ade80; }
+    .impact-value.open { color: #f97316; }
+    .impact-value.closed { color: #3b82f6; }
+    .impact-hint { font-size: 14px; margin-top: 8px; font-weight: 600; }
+    
+    /* Review screen */
+    .review-container { padding: 16px; max-width: 600px; margin: 0 auto; }
+    .review-video-wrapper { position: relative; width: 100%; aspect-ratio: 3/4; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
     .review-video { width: 100%; height: 100%; object-fit: contain; }
-    .speed-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px; }
-    .speed-label { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
-    .speed-buttons { display: flex; gap: 8px; }
-    .speed-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 14px; color: #fff; font-size: 13px; cursor: pointer; }
-    .speed-btn.active { background: linear-gradient(135deg, #ff6b35, #e55a2b); border: none; font-weight: 600; }
-    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
-    .metric-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px 12px; text-align: center; display: flex; flex-direction: column; gap: 4px; }
-    .metric-label { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; }
-    .metric-value { font-size: 24px; font-weight: 700; color: #ff6b35; }
-    .metric-hint { font-size: 10px; color: rgba(255,255,255,0.4); }
-    .error-box { background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: center; }
+    #review-trace-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    
+    .review-metrics { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; justify-content: center; }
+    .review-metric { 
+      background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px 20px; 
+      text-align: center; min-width: 100px; flex: 1;
+    }
+    .review-metric-label { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 1px; margin-bottom: 4px; }
+    .review-metric-value { font-size: 28px; font-weight: 700; color: #ff6b35; }
+    .review-metric-value.square { color: #4ade80; }
+    .review-metric-value.open { color: #f97316; }
+    .review-metric-value.closed { color: #3b82f6; }
+    .review-metric-hint { font-size: 11px; color: rgba(255,255,255,0.4); margin-top: 2px; }
+    
+    .speed-controls { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px; }
+    .speed-label { font-size: 12px; color: rgba(255,255,255,0.5); }
+    .speed-btn { 
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
+      border-radius: 8px; padding: 8px 14px; color: #fff; font-size: 13px; cursor: pointer; 
+    }
+    .speed-btn.active { background: #ff6b35; border-color: #ff6b35; font-weight: 600; }
+    
+    .toggle-row { display: flex; gap: 12px; justify-content: center; margin-bottom: 16px; }
+    .toggle-btn { 
+      background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); 
+      border-radius: 8px; padding: 10px 16px; color: #fff; font-size: 13px; cursor: pointer; 
+    }
+    .toggle-btn.active { background: rgba(255,107,53,0.3); border-color: #ff6b35; }
+    
     .hidden { display: none !important; }
-    .adjust-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 12px; cursor: pointer; }
-    .adjust-panel { position: absolute; top: 120px; right: 16px; background: rgba(0,0,0,0.85); border-radius: 12px; padding: 16px; z-index: 20; min-width: 180px; }
-    .adjust-panel.hidden { display: none; }
-    .adjust-row { margin-bottom: 16px; }
-    .adjust-row:last-child { margin-bottom: 0; }
-    .adjust-label { font-size: 11px; color: rgba(255,255,255,0.6); margin-bottom: 6px; display: block; letter-spacing: 0.5px; }
-    .adjust-slider { width: 100%; }
-    .adjust-value { font-size: 11px; color: #ff6b35; float: right; }
   </style>
 </head>
 <body>
@@ -93,7 +157,6 @@
   <div id="setup-screen" class="container">
     <div class="header">
       <h1 class="title">STROKE TRAINER</h1>
-      <p class="subtitle">PUTTING PRACTICE</p>
     </div>
     <div class="setup-card">
       <div class="control-group">
@@ -102,7 +165,7 @@
           <span><span class="control-value" id="bpm-display">76</span> <span class="control-unit">BPM</span></span>
         </div>
         <input type="range" id="bpm-slider" min="60" max="90" value="76">
-        <div class="slider-labels"><span>60</span><span>70</span><span>80</span><span>90</span></div>
+        <div class="slider-labels"><span>60</span><span>75</span><span>90</span></div>
         <div class="fine-tune-row">
           <button class="fine-tune-btn" id="bpm-minus">−1</button>
           <button class="fine-tune-btn" id="bpm-plus">+1</button>
@@ -119,13 +182,17 @@
           <button class="arc-btn" data-arc="76">76°</button>
           <button class="arc-btn" data-arc="78">78°</button>
           <button class="arc-btn" data-arc="80">80°</button>
-          <button class="arc-btn" data-arc="82">82°</button>
         </div>
       </div>
     </div>
-    <button class="primary-btn" id="start-setup-btn">Start Setup</button>
+    <button class="primary-btn" id="start-btn">Start Training</button>
     <div class="info-box">
-      <p class="info-text"><strong>Setup:</strong><br>• Phone landscape, top toward hole<br>• Mount 30" above mat<br>• Blue sticker on heel, pink on toe</p>
+      <p class="info-text">
+        <strong>Setup:</strong><br>
+        • Mount phone ~30" above putting surface<br>
+        • Place stickers on putter (blue=heel, pink=toe)<br>
+        • Position ball at the "Ball Here" marker
+      </p>
     </div>
   </div>
 
@@ -143,59 +210,75 @@
         <p id="camera-error" style="color: #ff6b35; font-size: 12px; margin-top: 8px; display: none;"></p>
       </div>
     </div>
-    <div class="calibrate-instructions">Align overlay arc with orange arc on mat. Use Adjust to fine-tune.</div>
+    <div class="calibrate-instructions">Position the "Ball Here" circle where you'll place your ball. The arc guide will extend from this point.</div>
     <div class="button-row">
       <button class="secondary-btn" id="calibrate-back-btn">Back</button>
-      <button class="primary-btn" id="confirm-calibrate-btn" style="width: auto;">Confirm & Start</button>
+      <button class="primary-btn" id="confirm-calibrate-btn" style="width: auto;">Start Practice</button>
     </div>
   </div>
 
   <!-- Practice Screen -->
   <div id="practice-screen" class="hidden">
-    <div class="camera-container-full">
-      <video id="practice-video" class="video" autoplay playsinline muted></video>
-      <canvas id="practice-canvas" style="display: none;"></canvas>
-      <canvas id="practice-overlay" class="overlay-canvas"></canvas>
-      <div class="top-bar">
-        <button class="back-btn" id="practice-back-btn">← Back</button>
-        <button class="adjust-btn" id="adjust-toggle-btn">⚙ Adjust</button>
-        <div class="arc-badge" id="practice-arc-badge">72°</div>
+    <div class="practice-layout">
+      <!-- Left: Metrics -->
+      <div class="metrics-panel">
+        <div class="metric-box highlight">
+          <div class="metric-box-label">Face Angle</div>
+          <div class="metric-box-value" id="live-face">0.0</div>
+          <div class="metric-box-unit">degrees</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-box-label">At Impact</div>
+          <div class="metric-box-value" id="live-impact">--</div>
+          <div class="metric-box-unit" id="live-impact-label"></div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-box-label">Tempo</div>
+          <div class="metric-box-value" id="live-tempo">0.0</div>
+          <div class="metric-box-unit">sec</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-box-label">Path Dev</div>
+          <div class="metric-box-value" id="live-path">0.0</div>
+          <div class="metric-box-unit">px</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-box-label">Strokes</div>
+          <div class="metric-box-value" id="live-strokes">0</div>
+          <div class="metric-box-unit"></div>
+        </div>
       </div>
       
-      <div class="adjust-panel hidden" id="adjust-panel">
-        <div class="adjust-row">
-          <label class="adjust-label">BALL POSITION <span class="adjust-value" id="ball-x-value">50%</span></label>
-          <input type="range" class="adjust-slider" id="ball-x-slider" min="30" max="70" value="50">
-        </div>
-        <div class="adjust-row">
-          <label class="adjust-label">ARC CURVE <span class="adjust-value" id="arc-curve-value">12</span></label>
-          <input type="range" class="adjust-slider" id="arc-curve-slider" min="5" max="30" value="12">
-        </div>
-        <div class="adjust-row">
-          <label class="adjust-label">ARC LENGTH <span class="adjust-value" id="arc-length-value">44%</span></label>
-          <input type="range" class="adjust-slider" id="arc-length-slider" min="30" max="50" value="44">
-        </div>
-        <div class="adjust-row">
-          <label class="adjust-label">VERTICAL SHIFT <span class="adjust-value" id="arc-offset-value">0</span></label>
-          <input type="range" class="adjust-slider" id="arc-offset-slider" min="-50" max="50" value="0">
+      <!-- Center: Camera -->
+      <div class="camera-area">
+        <video id="practice-video" autoplay playsinline muted></video>
+        <canvas id="practice-canvas" style="display:none;"></canvas>
+        <canvas id="practice-overlay"></canvas>
+        <canvas id="trace-canvas"></canvas>
+        <button class="back-btn-float" id="practice-back-btn">← Back</button>
+        
+        <!-- Impact popup -->
+        <div class="impact-display" id="impact-display">
+          <div class="impact-label">FACE AT IMPACT</div>
+          <div class="impact-value" id="impact-value">0.0°</div>
+          <div class="impact-hint" id="impact-hint">SQUARE</div>
         </div>
       </div>
       
-      <div class="metronome-bar">
-        <button class="metronome-btn" id="metronome-btn">
-          <span class="metronome-dot" id="metronome-dot" style="background: #666;"></span>
-          <span id="metronome-bpm">76 BPM</span>
-        </button>
-      </div>
-      <div class="bottom-bar">
-        <button class="record-btn" id="record-btn">
-          <div class="record-dot"></div>
-          RECORD STROKE
-        </button>
-        <button class="stop-btn hidden" id="stop-btn">
-          <div class="stop-square"></div>
-          STOP
-        </button>
+      <!-- Right: Controls -->
+      <div class="controls-panel">
+        <button class="ctrl-btn active" id="tracking-btn">ON</button>
+        <div class="panel-box">
+          <div class="panel-label">Arc</div>
+          <div class="panel-value" id="arc-badge">72°</div>
+        </div>
+        <div class="panel-box">
+          <div class="panel-label">BPM</div>
+          <div class="panel-value" id="bpm-badge">76</div>
+        </div>
+        <button class="ctrl-btn" id="metronome-btn">🔇</button>
+        <button class="ctrl-btn" id="record-btn">REC</button>
+        <button class="ctrl-btn" id="clear-btn">CLEAR</button>
       </div>
     </div>
   </div>
@@ -203,68 +286,80 @@
   <!-- Review Screen -->
   <div id="review-screen" class="container hidden">
     <div class="header"><h1 class="title-small">STROKE REVIEW</h1></div>
-    <div class="review-video-container">
-      <video id="review-video" class="review-video" controls loop></video>
+    
+    <div class="review-metrics">
+      <div class="review-metric">
+        <div class="review-metric-label">FACE AT IMPACT</div>
+        <div class="review-metric-value" id="review-face">0.0°</div>
+        <div class="review-metric-hint" id="review-face-hint">Square</div>
+      </div>
+      <div class="review-metric">
+        <div class="review-metric-label">TEMPO</div>
+        <div class="review-metric-value" id="review-tempo">0.0s</div>
+        <div class="review-metric-hint">backswing to impact</div>
+      </div>
+      <div class="review-metric">
+        <div class="review-metric-label">PATH</div>
+        <div class="review-metric-value" id="review-path">0px</div>
+        <div class="review-metric-hint">deviation from ideal</div>
+      </div>
     </div>
+    
+    <div class="review-video-wrapper">
+      <video id="review-video" class="review-video" controls loop playsinline></video>
+      <canvas id="review-trace-canvas"></canvas>
+    </div>
+    
+    <div class="toggle-row">
+      <button class="toggle-btn active" id="toggle-ideal">Show Ideal Arc</button>
+      <button class="toggle-btn active" id="toggle-actual">Show Actual Path</button>
+    </div>
+    
     <div class="speed-controls">
-      <span class="speed-label">SPEED</span>
-      <div class="speed-buttons" id="speed-buttons">
-        <button class="speed-btn" data-speed="0.25">0.25x</button>
-        <button class="speed-btn" data-speed="0.5">0.5x</button>
-        <button class="speed-btn active" data-speed="1">1x</button>
-        <button class="speed-btn" data-speed="2">2x</button>
-      </div>
+      <span class="speed-label">Speed:</span>
+      <button class="speed-btn" data-speed="0.25">0.25x</button>
+      <button class="speed-btn" data-speed="0.5">0.5x</button>
+      <button class="speed-btn active" data-speed="1">1x</button>
     </div>
-    <div class="metrics-grid" id="metrics-grid">
-      <div class="metric-card">
-        <span class="metric-label">FACE AT IMPACT</span>
-        <span class="metric-value" id="face-metric">0°</span>
-        <span class="metric-hint" id="face-hint">Square</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">TEMPO</span>
-        <span class="metric-value" id="tempo-metric">0s</span>
-        <span class="metric-hint">Backswing to impact</span>
-      </div>
-      <div class="metric-card">
-        <span class="metric-label">PATH</span>
-        <span class="metric-value" id="path-metric">0px</span>
-        <span class="metric-hint">Lateral deviation</span>
-      </div>
-    </div>
-    <div class="error-box hidden" id="error-box">
-      <p id="error-message"></p>
-      <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 8px;">Make sure stickers are visible and try again</p>
-    </div>
+    
     <div class="button-row">
-      <button class="primary-btn" id="record-another-btn" style="width: auto;">Record Another</button>
-      <button class="secondary-btn" id="review-settings-btn">Settings</button>
+      <button class="primary-btn" id="continue-btn" style="width:auto;">Continue Training</button>
+      <button class="secondary-btn" id="settings-btn">Settings</button>
     </div>
   </div>
 
   <script>
-    // State
+    // ===== STATE =====
     let bpm = 76;
     let arcDegree = 72;
     let metronomeOn = false;
-    let cameraActive = false;
+    let trackingOn = true;
     let isRecording = false;
     let stream = null;
     let mediaRecorder = null;
     let recordedChunks = [];
-    let trackingData = [];
     let audioContext = null;
     let metronomeInterval = null;
     let animationFrame = null;
     
-    // LANDSCAPE orientation: hole is to the LEFT (west)
-    // Stroke path goes LEFT-RIGHT on screen
-    // Arc curves SOUTH (down on screen, positive Y)
-    let ballXPercent = 50;      // Ball horizontal position
-    let arcCurveAmount = 12;    // Pixels of curve (in Y direction)
-    let arcLengthPercent = 44;  // Arc extends this % of width each direction
-    let arcOffsetY = 0;         // Vertical offset
+    // Tracking data
+    let trackingData = [];
+    let strokeCount = 0;
+    let strokeInProgress = false;
+    let strokeStartTime = 0;
+    let lastPositions = [];
+    let impactCaptured = false;
+    
+    // Calibration
+    let ballYPercent = 55;
+    let ballXPercent = 50;
+    let arcLengthPercent = 38;
+    
+    // Review display options
+    let showIdealArc = true;
+    let showActualPath = true;
 
+    // ===== SCREENS =====
     const screens = {
       setup: document.getElementById('setup-screen'),
       calibrate: document.getElementById('calibrate-screen'),
@@ -276,10 +371,10 @@
       Object.values(screens).forEach(s => s.classList.add('hidden'));
       screens[name].classList.remove('hidden');
       if (name === 'practice' || name === 'calibrate') {
-        requestAnimationFrame(() => {
-          resizeCanvases();
-          drawOverlay();
-        });
+        setTimeout(() => { resizeCanvases(); drawOverlay(); }, 50);
+      }
+      if (name === 'review') {
+        setTimeout(drawReviewOverlay, 100);
       }
     }
 
@@ -291,435 +386,514 @@
         calibrateCanvas.height = calibrateContainer.offsetHeight;
       }
       
-      const practiceOverlay = document.getElementById('practice-overlay');
-      if (practiceOverlay) {
-        practiceOverlay.width = window.innerWidth;
-        practiceOverlay.height = window.innerHeight;
+      const cameraArea = document.querySelector('.camera-area');
+      if (cameraArea) {
+        const w = cameraArea.offsetWidth;
+        const h = cameraArea.offsetHeight;
+        ['practice-overlay', 'trace-canvas'].forEach(id => {
+          const c = document.getElementById(id);
+          if (c) { c.width = w; c.height = h; }
+        });
       }
     }
 
-    const bpmSlider = document.getElementById('bpm-slider');
-    const bpmDisplay = document.getElementById('bpm-display');
-    
+    // ===== BPM =====
     function updateBpm(value) {
       bpm = Math.max(60, Math.min(90, value));
-      bpmSlider.value = bpm;
-      bpmDisplay.textContent = bpm;
-      document.getElementById('metronome-bpm').textContent = bpm + ' BPM';
-      bpmSlider.style.background = `linear-gradient(to right, #ff6b35 0%, #ff6b35 ${((bpm - 60) / 30) * 100}%, rgba(255,255,255,0.2) ${((bpm - 60) / 30) * 100}%, rgba(255,255,255,0.2) 100%)`;
+      document.getElementById('bpm-slider').value = bpm;
+      document.getElementById('bpm-display').textContent = bpm;
+      document.getElementById('bpm-badge').textContent = bpm;
     }
     
-    bpmSlider.addEventListener('input', (e) => updateBpm(parseInt(e.target.value)));
+    document.getElementById('bpm-slider').addEventListener('input', e => updateBpm(parseInt(e.target.value)));
     document.getElementById('bpm-minus').addEventListener('click', () => updateBpm(bpm - 1));
     document.getElementById('bpm-plus').addEventListener('click', () => updateBpm(bpm + 1));
 
-    document.getElementById('arc-buttons').addEventListener('click', (e) => {
+    // ===== ARC =====
+    document.getElementById('arc-buttons').addEventListener('click', e => {
       if (e.target.dataset.arc) {
         arcDegree = parseInt(e.target.dataset.arc);
         document.getElementById('arc-display').textContent = arcDegree + '°';
-        document.getElementById('practice-arc-badge').textContent = arcDegree + '°';
-        document.querySelectorAll('.arc-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById('arc-badge').textContent = arcDegree + '°';
+        document.querySelectorAll('.arc-btn').forEach(b => b.classList.remove('active'));
         e.target.classList.add('active');
         drawOverlay();
       }
     });
 
-    document.getElementById('adjust-toggle-btn').addEventListener('click', () => {
-      document.getElementById('adjust-panel').classList.toggle('hidden');
-    });
-
-    document.getElementById('ball-x-slider').addEventListener('input', (e) => {
-      ballXPercent = parseInt(e.target.value);
-      document.getElementById('ball-x-value').textContent = ballXPercent + '%';
-      drawOverlay();
-    });
-    document.getElementById('arc-curve-slider').addEventListener('input', (e) => {
-      arcCurveAmount = parseInt(e.target.value);
-      document.getElementById('arc-curve-value').textContent = arcCurveAmount;
-      drawOverlay();
-    });
-    document.getElementById('arc-length-slider').addEventListener('input', (e) => {
-      arcLengthPercent = parseInt(e.target.value);
-      document.getElementById('arc-length-value').textContent = arcLengthPercent + '%';
-      drawOverlay();
-    });
-    document.getElementById('arc-offset-slider').addEventListener('input', (e) => {
-      arcOffsetY = parseInt(e.target.value);
-      document.getElementById('arc-offset-value').textContent = arcOffsetY;
-      drawOverlay();
-    });
-
-    async function startCamera(videoElement) {
+    // ===== CAMERA =====
+    async function startCamera(videoEl) {
       try {
         stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 60, min: 30 } }
+          video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 60 } }
         });
-        videoElement.srcObject = stream;
-        cameraActive = true;
-        document.getElementById('calibrate-placeholder').classList.add('hidden');
-        
-        videoElement.onloadedmetadata = () => {
-          resizeCanvases();
-          drawOverlay();
-        };
+        videoEl.srcObject = stream;
+        document.getElementById('calibrate-placeholder')?.classList.add('hidden');
+        videoEl.onloadedmetadata = () => { resizeCanvases(); drawOverlay(); };
         return true;
       } catch (err) {
-        document.getElementById('camera-error').textContent = 'Camera access denied.';
-        document.getElementById('camera-error').style.display = 'block';
+        const errEl = document.getElementById('camera-error');
+        if (errEl) { errEl.textContent = 'Camera access denied'; errEl.style.display = 'block'; }
         return false;
       }
     }
 
     function stopCamera() {
-      if (stream) {
-        stream.getTracks().forEach(track => track.stop());
-        stream = null;
-      }
-      cameraActive = false;
+      if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
     }
 
+    // ===== AUDIO =====
     function initAudio() {
-      if (!audioContext) {
-        audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      }
+      if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
     }
 
     function playClick() {
       if (!audioContext) return;
       if (audioContext.state === 'suspended') audioContext.resume();
-      
-      const oscillator = audioContext.createOscillator();
-      const gainNode = audioContext.createGain();
-      oscillator.connect(gainNode);
-      gainNode.connect(audioContext.destination);
-      oscillator.frequency.value = 800;
-      oscillator.type = 'sine';
-      gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
-      oscillator.start(audioContext.currentTime);
-      oscillator.stop(audioContext.currentTime + 0.08);
-      
-      const dot = document.getElementById('metronome-dot');
-      dot.style.background = '#ff6b35';
-      setTimeout(() => { dot.style.background = metronomeOn ? '#4ade80' : '#666'; }, 80);
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.connect(gain); gain.connect(audioContext.destination);
+      osc.frequency.value = 800; osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+      osc.start(); osc.stop(audioContext.currentTime + 0.08);
     }
 
     function toggleMetronome() {
       initAudio();
       metronomeOn = !metronomeOn;
       const btn = document.getElementById('metronome-btn');
-      const dot = document.getElementById('metronome-dot');
-      
       if (metronomeOn) {
-        btn.classList.add('active');
-        dot.style.background = '#4ade80';
+        btn.textContent = '🔊'; btn.classList.add('active');
         playClick();
         metronomeInterval = setInterval(playClick, (60 / bpm) * 1000);
       } else {
-        btn.classList.remove('active');
-        dot.style.background = '#666';
+        btn.textContent = '🔇'; btn.classList.remove('active');
         if (metronomeInterval) clearInterval(metronomeInterval);
       }
     }
 
-    // LANDSCAPE drawing - stroke goes LEFT-RIGHT, arc curves DOWN (south)
+    // ===== OVERLAY DRAWING =====
     function drawOverlay() {
-      const calibrateCanvas = document.getElementById('calibrate-canvas');
-      if (calibrateCanvas && calibrateCanvas.width > 0) {
-        drawOnCanvas(calibrateCanvas);
-      }
-      
-      const practiceCanvas = document.getElementById('practice-overlay');
-      if (practiceCanvas && practiceCanvas.width > 0) {
-        drawOnCanvas(practiceCanvas);
-      }
+      const c1 = document.getElementById('calibrate-canvas');
+      if (c1 && c1.width > 0) drawGuideOnCanvas(c1);
+      const c2 = document.getElementById('practice-overlay');
+      if (c2 && c2.width > 0) drawGuideOnCanvas(c2);
     }
     
-    function drawOnCanvas(canvas) {
+    function drawGuideOnCanvas(canvas) {
       const ctx = canvas.getContext('2d');
-      const width = canvas.width;
-      const height = canvas.height;
+      const W = canvas.width, H = canvas.height;
+      ctx.clearRect(0, 0, W, H);
       
-      ctx.clearRect(0, 0, width, height);
+      const centerX = W * (ballXPercent / 100);
+      const ballY = H * (ballYPercent / 100);
+      const arcLen = H * (arcLengthPercent / 100);
       
-      // Ball position - horizontal center of mat
-      const ballX = width * (ballXPercent / 100);
-      const centerY = height / 2 + arcOffsetY;
+      // Arc curve: more curve for lower degrees
+      const curveFactor = (90 - arcDegree) / 90;
+      const maxCurve = W * 0.04 * curveFactor;
       
-      // Arc length extends left and right from ball
-      const arcLength = width * (arcLengthPercent / 100);
-      
-      const curveFactor = (90 - arcDegree) / 18;
-      const maxCurve = arcCurveAmount * curveFactor;
-      
-      const numPoints = 60;
-      // Stroke goes from RIGHT (backswing) to LEFT (follow-through toward hole)
-      const startX = ballX + arcLength;  // Backswing (right side)
-      const endX = ballX - arcLength;    // Follow-through (left side, toward hole)
-      
-      const points = [];
-      for (let i = 0; i <= numPoints; i++) {
-        const t = i / numPoints;
-        const x = startX + (endX - startX) * t;
-        const distFromBall = Math.abs(x - ballX) / arcLength;
-        
-        // CURVE SOUTH (positive Y = down on screen)
-        const yOffset = maxCurve * distFromBall * distFromBall;
-        const y = centerY + yOffset;
-        
-        points.push({ x, y, distFromBall });
-      }
-      
-      // Draw arc path
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255, 107, 53, 0.9)';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([10, 6]);
-      
-      for (let i = 0; i < points.length; i++) {
-        if (i === 0) {
-          ctx.moveTo(points[i].x, points[i].y);
-        } else {
-          ctx.lineTo(points[i].x, points[i].y);
-        }
-      }
-      ctx.stroke();
-      ctx.setLineDash([]);
-      
-      // Draw SQUARE TO PATH tick marks
-      const numTicks = 9;
-      const tickLength = 14;
+      // Draw tick marks along arc
+      const numTicks = 13;
+      const tickW = W * 0.15;
       
       for (let i = 0; i <= numTicks; i++) {
         const t = i / numTicks;
-        const idx = Math.floor(t * (points.length - 1));
-        const point = points[idx];
-        
-        const prevIdx = Math.max(0, idx - 1);
-        const nextIdx = Math.min(points.length - 1, idx + 1);
-        
-        const dx = points[nextIdx].x - points[prevIdx].x;
-        const dy = points[nextIdx].y - points[prevIdx].y;
-        
-        const tangentAngle = Math.atan2(dy, dx);
-        const perpAngle = tangentAngle + Math.PI / 2;
-        
-        const isCenter = i === Math.floor(numTicks / 2);
+        const y = (ballY - arcLen) + (arcLen * 2) * t;
+        const dist = Math.abs(y - ballY) / arcLen;
+        const xOff = maxCurve * dist * dist;
+        const x = centerX + xOff;
         
         ctx.beginPath();
-        ctx.strokeStyle = isCenter ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 107, 53, 0.8)';
-        ctx.lineWidth = isCenter ? 4 : 2;
-        
-        const x1 = point.x - tickLength * Math.cos(perpAngle);
-        const y1 = point.y - tickLength * Math.sin(perpAngle);
-        const x2 = point.x + tickLength * Math.cos(perpAngle);
-        const y2 = point.y + tickLength * Math.sin(perpAngle);
-        
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+        ctx.lineWidth = 2;
+        ctx.moveTo(x - tickW/2, y);
+        ctx.lineTo(x + tickW/2, y);
         ctx.stroke();
       }
       
-      // Draw center target line (horizontal, through ball toward hole)
+      // Center reference line (subtle)
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([8, 8]);
-      ctx.moveTo(0, centerY);
-      ctx.lineTo(width, centerY);
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 8]);
+      ctx.moveTo(centerX, ballY - arcLen - 30);
+      ctx.lineTo(centerX, ballY + arcLen + 30);
       ctx.stroke();
       ctx.setLineDash([]);
       
-      // Draw ball circle
+      // Ball position circle
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
-      ctx.lineWidth = 3;
-      ctx.arc(ballX, centerY, 20, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.lineWidth = 2;
+      ctx.arc(centerX, ballY, 22, 0, Math.PI * 2);
       ctx.stroke();
       
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-      ctx.font = 'bold 14px system-ui';
+      ctx.fillStyle = 'rgba(255,255,255,0.8)';
+      ctx.font = 'bold 11px system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText('BALL', ballX, centerY + 38);
+      ctx.fillText('Ball', centerX, ballY - 3);
+      ctx.fillText('Here', centerX, ballY + 9);
       
-      // Arc label
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = 'bold 16px system-ui';
-      ctx.fillText(arcDegree + '° ARC', width / 2, 30);
-      
-      // Arrow toward hole (pointing LEFT)
-      ctx.beginPath();
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-      ctx.moveTo(30, centerY);
-      ctx.lineTo(45, centerY - 8);
-      ctx.lineTo(45, centerY + 8);
-      ctx.closePath();
-      ctx.fill();
-      
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-      ctx.font = '12px system-ui';
-      ctx.textAlign = 'left';
-      ctx.fillText('HOLE', 50, centerY + 4);
+      // Putter zone
+      const putterY = ballY - 55;
+      ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(centerX - 35, putterY - 20, 70, 40);
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.font = '10px system-ui';
+      ctx.fillText('Putter', centerX, putterY - 3);
+      ctx.fillText('Here', centerX, putterY + 9);
     }
 
-    function detectColorPosition(imageData, targetColor, width, height) {
-      const data = imageData.data;
-      let sumX = 0, sumY = 0, count = 0;
-      const colorRanges = {
-        blue: { rMin: 0, rMax: 120, gMin: 80, gMax: 220, bMin: 160, bMax: 255 },
-        pink: { rMin: 180, rMax: 255, gMin: 80, gMax: 180, bMin: 130, bMax: 230 }
+    // ===== COLOR TRACKING =====
+    function detectColor(imageData, color, W, H) {
+      const d = imageData.data;
+      let sx = 0, sy = 0, cnt = 0;
+      const ranges = {
+        blue: { r: [0, 120], g: [80, 220], b: [160, 255] },
+        pink: { r: [180, 255], g: [50, 180], b: [130, 255] }
       };
-      const range = colorRanges[targetColor];
-      if (!range) return null;
+      const rng = ranges[color];
+      if (!rng) return null;
       
-      for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x++) {
-          const i = (y * width + x) * 4;
-          const r = data[i], g = data[i + 1], b = data[i + 2];
-          if (r >= range.rMin && r <= range.rMax && g >= range.gMin && g <= range.gMax && b >= range.bMin && b <= range.bMax) {
-            sumX += x; sumY += y; count++;
+      for (let y = 0; y < H; y += 2) {
+        for (let x = 0; x < W; x += 2) {
+          const i = (y * W + x) * 4;
+          if (d[i] >= rng.r[0] && d[i] <= rng.r[1] &&
+              d[i+1] >= rng.g[0] && d[i+1] <= rng.g[1] &&
+              d[i+2] >= rng.b[0] && d[i+2] <= rng.b[1]) {
+            sx += x; sy += y; cnt++;
           }
         }
       }
-      if (count > 10) return { x: sumX / count, y: sumY / count, confidence: count };
-      return null;
+      return cnt > 8 ? { x: sx/cnt, y: sy/cnt, confidence: cnt } : null;
     }
 
+    // ===== STROKE DETECTION & TRACKING =====
     function processFrame() {
-      if (!isRecording) return;
+      if (!trackingOn) { animationFrame = requestAnimationFrame(processFrame); return; }
       
       const video = document.getElementById('practice-video');
       const canvas = document.getElementById('practice-canvas');
       const ctx = canvas.getContext('2d');
       
-      canvas.width = video.videoWidth || 640;
-      canvas.height = video.videoHeight || 480;
+      const vw = video.videoWidth || 640;
+      const vh = video.videoHeight || 480;
+      canvas.width = vw; canvas.height = vh;
       ctx.drawImage(video, 0, 0);
       
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const bluePos = detectColorPosition(imageData, 'blue', canvas.width, canvas.height);
-      const pinkPos = detectColorPosition(imageData, 'pink', canvas.width, canvas.height);
+      const imageData = ctx.getImageData(0, 0, vw, vh);
+      const blue = detectColor(imageData, 'blue', vw, vh);
+      const pink = detectColor(imageData, 'pink', vw, vh);
       
-      if (bluePos && pinkPos) {
-        const dx = pinkPos.x - bluePos.x;
-        const dy = pinkPos.y - bluePos.y;
-        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
-        // For landscape with hole on left, square face = angle near 0 or 180
-        const faceAngle = Math.abs(angle) > 90 ? 180 - Math.abs(angle) : Math.abs(angle);
-        const putterCenterX = (bluePos.x + pinkPos.x) / 2;
-        const putterCenterY = (bluePos.y + pinkPos.y) / 2;
+      if (blue && pink) {
+        const cx = (blue.x + pink.x) / 2;
+        const cy = (blue.y + pink.y) / 2;
+        const dx = pink.x - blue.x;
+        const dy = pink.y - blue.y;
+        const rawAngle = Math.atan2(dy, dx) * (180 / Math.PI);
+        // Face angle: 0 = square (perpendicular to target line)
+        // Positive = open, Negative = closed
+        const faceAngle = rawAngle > 0 ? 90 - rawAngle : -90 - rawAngle;
         
-        trackingData.push({ 
-          timestamp: Date.now(), 
-          bluePos, 
-          pinkPos, 
-          centerX: putterCenterX, 
-          centerY: putterCenterY, 
-          faceAngle: faceAngle.toFixed(1) 
-        });
+        const now = Date.now();
+        const dataPoint = { timestamp: now, cx, cy, faceAngle, blue, pink };
+        
+        // Update live display
+        document.getElementById('live-face').textContent = faceAngle.toFixed(1);
+        
+        // Movement detection for stroke
+        lastPositions.push({ cy, time: now });
+        if (lastPositions.length > 10) lastPositions.shift();
+        
+        if (lastPositions.length >= 5) {
+          const oldest = lastPositions[0];
+          const newest = lastPositions[lastPositions.length - 1];
+          const movement = Math.abs(newest.cy - oldest.cy);
+          
+          // Stroke start detection
+          if (!strokeInProgress && movement > 15) {
+            strokeInProgress = true;
+            strokeStartTime = now;
+            trackingData = [];
+            impactCaptured = false;
+          }
+          
+          // During stroke
+          if (strokeInProgress) {
+            trackingData.push(dataPoint);
+            drawStrokeTrace();
+            
+            // Impact detection: putter crosses ball Y position
+            const ballY = vh * (ballYPercent / 100);
+            const prevPoint = trackingData[trackingData.length - 2];
+            if (prevPoint && !impactCaptured) {
+              const crossedBall = (prevPoint.cy > ballY && cy <= ballY) || 
+                                  (prevPoint.cy < ballY && cy >= ballY);
+              if (crossedBall) {
+                captureImpact(faceAngle, now);
+              }
+            }
+            
+            // Stroke end detection (movement stops)
+            if (movement < 3 && trackingData.length > 20) {
+              endStroke();
+            }
+          }
+        }
       }
       
       animationFrame = requestAnimationFrame(processFrame);
     }
 
-    function startRecording() {
-      if (!stream) return;
+    function captureImpact(faceAngle, time) {
+      impactCaptured = true;
+      const tempo = ((time - strokeStartTime) / 1000).toFixed(2);
       
-      recordedChunks = [];
-      trackingData = [];
+      // Update live metrics
+      document.getElementById('live-impact').textContent = faceAngle.toFixed(1) + '°';
+      document.getElementById('live-tempo').textContent = tempo;
       
-      const options = { mimeType: 'video/webm;codecs=vp9' };
-      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options.mimeType = 'video/webm';
-      }
+      let hint = 'SQUARE';
+      let cls = 'square';
+      if (faceAngle > 0.5) { hint = 'OPEN'; cls = 'open'; }
+      else if (faceAngle < -0.5) { hint = 'CLOSED'; cls = 'closed'; }
       
-      mediaRecorder = new MediaRecorder(stream, options);
-      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
-      mediaRecorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: 'video/webm' });
-        document.getElementById('review-video').src = URL.createObjectURL(blob);
-        calculateMetrics();
-      };
+      document.getElementById('live-impact-label').textContent = hint;
       
-      mediaRecorder.start(100);
-      isRecording = true;
-      document.getElementById('record-btn').classList.add('hidden');
-      document.getElementById('stop-btn').classList.remove('hidden');
-      processFrame();
+      // Show impact popup
+      const popup = document.getElementById('impact-display');
+      const valEl = document.getElementById('impact-value');
+      const hintEl = document.getElementById('impact-hint');
+      
+      valEl.textContent = faceAngle.toFixed(1) + '°';
+      valEl.className = 'impact-value ' + cls;
+      hintEl.textContent = hint;
+      hintEl.className = 'impact-hint';
+      hintEl.style.color = cls === 'square' ? '#4ade80' : cls === 'open' ? '#f97316' : '#3b82f6';
+      
+      popup.classList.remove('show');
+      void popup.offsetWidth; // Reset animation
+      popup.classList.add('show');
+      
+      setTimeout(() => popup.classList.remove('show'), 3000);
     }
 
-    function stopRecording() {
-      if (mediaRecorder && isRecording) {
+    function endStroke() {
+      strokeInProgress = false;
+      strokeCount++;
+      document.getElementById('live-strokes').textContent = strokeCount;
+      
+      // Calculate path deviation
+      if (trackingData.length > 0) {
+        const canvas = document.getElementById('practice-canvas');
+        const idealCenterX = canvas.width * (ballXPercent / 100);
+        let totalDev = 0;
+        trackingData.forEach(p => { totalDev += Math.abs(p.cx - idealCenterX); });
+        const avgDev = (totalDev / trackingData.length).toFixed(1);
+        document.getElementById('live-path').textContent = avgDev;
+      }
+      
+      lastPositions = [];
+    }
+
+    function drawStrokeTrace() {
+      const canvas = document.getElementById('trace-canvas');
+      const ctx = canvas.getContext('2d');
+      const video = document.getElementById('practice-video');
+      
+      // Scale from video coords to canvas coords
+      const scaleX = canvas.width / (video.videoWidth || 640);
+      const scaleY = canvas.height / (video.videoHeight || 480);
+      
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      if (trackingData.length < 2) return;
+      
+      // Draw actual stroke path
+      ctx.beginPath();
+      ctx.strokeStyle = '#ff6b35';
+      ctx.lineWidth = 3;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      
+      trackingData.forEach((p, i) => {
+        const x = p.cx * scaleX;
+        const y = p.cy * scaleY;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      
+      // Draw putter head indicator at current position
+      const last = trackingData[trackingData.length - 1];
+      const lx = last.cx * scaleX;
+      const ly = last.cy * scaleY;
+      
+      ctx.beginPath();
+      ctx.fillStyle = '#ff6b35';
+      ctx.arc(lx, ly, 6, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function clearTrace() {
+      trackingData = [];
+      lastPositions = [];
+      strokeInProgress = false;
+      impactCaptured = false;
+      const canvas = document.getElementById('trace-canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+      }
+      document.getElementById('live-impact').textContent = '--';
+      document.getElementById('live-impact-label').textContent = '';
+      document.getElementById('live-tempo').textContent = '0.0';
+      document.getElementById('live-path').textContent = '0.0';
+    }
+
+    // ===== RECORDING =====
+    function toggleRecording() {
+      const btn = document.getElementById('record-btn');
+      if (!isRecording) {
+        recordedChunks = [];
+        trackingData = []; // Reset tracking for this recording
+        
+        const options = { mimeType: 'video/webm;codecs=vp9' };
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) options.mimeType = 'video/webm';
+        
+        mediaRecorder = new MediaRecorder(stream, options);
+        mediaRecorder.ondataavailable = e => { if (e.data.size > 0) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          document.getElementById('review-video').src = URL.createObjectURL(blob);
+          calculateReviewMetrics();
+          showScreen('review');
+        };
+        
+        mediaRecorder.start(100);
+        isRecording = true;
+        btn.textContent = 'STOP';
+        btn.classList.add('recording');
+      } else {
         mediaRecorder.stop();
         isRecording = false;
-        if (animationFrame) cancelAnimationFrame(animationFrame);
-        document.getElementById('record-btn').classList.remove('hidden');
-        document.getElementById('stop-btn').classList.add('hidden');
+        btn.textContent = 'REC';
+        btn.classList.remove('recording');
       }
     }
 
-    function calculateMetrics() {
-      const errorBox = document.getElementById('error-box');
-      const metricsGrid = document.getElementById('metrics-grid');
+    function calculateReviewMetrics() {
+      // Find impact point in tracking data
+      let impactFace = 0;
+      let impactTime = 0;
+      let totalDev = 0;
       
-      if (trackingData.length < 10) {
-        errorBox.classList.remove('hidden');
-        metricsGrid.classList.add('hidden');
-        document.getElementById('error-message').textContent = 'Not enough tracking data.';
-        showScreen('review');
-        return;
+      if (trackingData.length > 0) {
+        const video = document.getElementById('practice-video');
+        const ballY = (video.videoHeight || 480) * (ballYPercent / 100);
+        const idealX = (video.videoWidth || 640) * (ballXPercent / 100);
+        
+        // Find impact
+        for (let i = 1; i < trackingData.length; i++) {
+          const prev = trackingData[i-1];
+          const curr = trackingData[i];
+          if ((prev.cy > ballY && curr.cy <= ballY) || (prev.cy < ballY && curr.cy >= ballY)) {
+            impactFace = curr.faceAngle;
+            impactTime = (curr.timestamp - trackingData[0].timestamp) / 1000;
+            break;
+          }
+        }
+        
+        // Calculate deviation
+        trackingData.forEach(p => { totalDev += Math.abs(p.cx - idealX); });
       }
       
-      errorBox.classList.add('hidden');
-      metricsGrid.classList.remove('hidden');
+      const avgDev = trackingData.length > 0 ? (totalDev / trackingData.length).toFixed(1) : 0;
       
-      // For landscape, ball X position determines impact
-      const practiceCanvas = document.getElementById('practice-canvas');
-      const ballX = practiceCanvas.width * (ballXPercent / 100);
+      // Update review display
+      const faceEl = document.getElementById('review-face');
+      faceEl.textContent = impactFace.toFixed(1) + '°';
+      faceEl.className = 'review-metric-value';
       
-      let impactIndex = 0, minDist = Infinity;
-      trackingData.forEach((point, index) => {
-        const dist = Math.abs(point.centerX - ballX);
-        if (dist < minDist) { minDist = dist; impactIndex = index; }
-      });
+      let hint = 'Square';
+      if (impactFace > 0.5) { hint = 'Open'; faceEl.classList.add('open'); }
+      else if (impactFace < -0.5) { hint = 'Closed'; faceEl.classList.add('closed'); }
+      else { faceEl.classList.add('square'); }
       
-      const impactPoint = trackingData[impactIndex];
-      const tempo = ((impactPoint.timestamp - trackingData[0].timestamp) / 1000).toFixed(2);
-      const faceAtImpact = parseFloat(impactPoint.faceAngle);
-      
-      const centerYValues = trackingData.slice(0, impactIndex).map(p => p.centerY);
-      const avgY = centerYValues.reduce((a, b) => a + b, 0) / centerYValues.length;
-      const variance = centerYValues.reduce((sum, y) => sum + Math.pow(y - avgY, 2), 0) / centerYValues.length;
-      const pathDeviation = Math.sqrt(variance).toFixed(1);
-      
-      const faceMetric = document.getElementById('face-metric');
-      faceMetric.textContent = faceAtImpact.toFixed(1) + '°';
-      faceMetric.style.color = Math.abs(faceAtImpact) < 1 ? '#4ade80' : Math.abs(faceAtImpact) < 2 ? '#fbbf24' : '#ff6b35';
-      document.getElementById('face-hint').textContent = faceAtImpact > 0.5 ? 'Open' : faceAtImpact < -0.5 ? 'Closed' : 'Square';
-      document.getElementById('tempo-metric').textContent = tempo + 's';
-      document.getElementById('path-metric').textContent = pathDeviation + 'px';
-      
-      showScreen('review');
+      document.getElementById('review-face-hint').textContent = hint;
+      document.getElementById('review-tempo').textContent = impactTime.toFixed(2) + 's';
+      document.getElementById('review-path').textContent = avgDev + 'px';
     }
 
-    document.getElementById('speed-buttons').addEventListener('click', (e) => {
-      if (e.target.dataset.speed) {
-        const speed = parseFloat(e.target.dataset.speed);
-        document.getElementById('review-video').playbackRate = speed;
-        document.querySelectorAll('.speed-btn').forEach(btn => btn.classList.remove('active'));
-        e.target.classList.add('active');
+    function drawReviewOverlay() {
+      const wrapper = document.querySelector('.review-video-wrapper');
+      const canvas = document.getElementById('review-trace-canvas');
+      if (!wrapper || !canvas) return;
+      
+      canvas.width = wrapper.offsetWidth;
+      canvas.height = wrapper.offsetHeight;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const video = document.getElementById('review-video');
+      const vw = video.videoWidth || 640;
+      const vh = video.videoHeight || 480;
+      const scaleX = canvas.width / vw;
+      const scaleY = canvas.height / vh;
+      
+      // Draw ideal arc
+      if (showIdealArc) {
+        const centerX = canvas.width * (ballXPercent / 100);
+        const ballY = canvas.height * (ballYPercent / 100);
+        const arcLen = canvas.height * (arcLengthPercent / 100);
+        const curveFactor = (90 - arcDegree) / 90;
+        const maxCurve = canvas.width * 0.04 * curveFactor;
+        
+        ctx.beginPath();
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([6, 4]);
+        
+        for (let i = 0; i <= 30; i++) {
+          const t = i / 30;
+          const y = (ballY - arcLen) + (arcLen * 2) * t;
+          const dist = Math.abs(y - ballY) / arcLen;
+          const x = centerX + maxCurve * dist * dist;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+        ctx.setLineDash([]);
       }
-    });
+      
+      // Draw actual path
+      if (showActualPath && trackingData.length > 1) {
+        ctx.beginPath();
+        ctx.strokeStyle = '#ff6b35';
+        ctx.lineWidth = 3;
+        
+        trackingData.forEach((p, i) => {
+          const x = p.cx * scaleX;
+          const y = p.cy * scaleY;
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.stroke();
+      }
+    }
 
-    document.getElementById('start-setup-btn').addEventListener('click', async () => {
+    // ===== EVENT LISTENERS =====
+    document.getElementById('start-btn').addEventListener('click', async () => {
       showScreen('calibrate');
-      const video = document.getElementById('calibrate-video');
-      await startCamera(video);
+      await startCamera(document.getElementById('calibrate-video'));
     });
 
     document.getElementById('calibrate-camera-btn').addEventListener('click', async () => {
-      const video = document.getElementById('calibrate-video');
-      await startCamera(video);
+      await startCamera(document.getElementById('calibrate-video'));
     });
 
     document.getElementById('calibrate-back-btn').addEventListener('click', () => {
@@ -728,36 +902,64 @@
     });
 
     document.getElementById('confirm-calibrate-btn').addEventListener('click', () => {
-      const practiceVideo = document.getElementById('practice-video');
-      practiceVideo.srcObject = stream;
+      document.getElementById('practice-video').srcObject = stream;
       showScreen('practice');
+      setTimeout(() => { resizeCanvases(); drawOverlay(); processFrame(); }, 100);
     });
 
     document.getElementById('practice-back-btn').addEventListener('click', () => {
-      stopRecording();
+      if (animationFrame) cancelAnimationFrame(animationFrame);
       if (metronomeOn) toggleMetronome();
+      if (isRecording) toggleRecording();
       stopCamera();
       showScreen('setup');
+    });
+
+    document.getElementById('tracking-btn').addEventListener('click', () => {
+      trackingOn = !trackingOn;
+      const btn = document.getElementById('tracking-btn');
+      btn.textContent = trackingOn ? 'ON' : 'OFF';
+      btn.classList.toggle('active', trackingOn);
     });
 
     document.getElementById('metronome-btn').addEventListener('click', toggleMetronome);
-    document.getElementById('record-btn').addEventListener('click', startRecording);
-    document.getElementById('stop-btn').addEventListener('click', stopRecording);
+    document.getElementById('record-btn').addEventListener('click', toggleRecording);
+    document.getElementById('clear-btn').addEventListener('click', clearTrace);
 
-    document.getElementById('record-another-btn').addEventListener('click', () => {
-      showScreen('practice');
+    document.getElementById('toggle-ideal').addEventListener('click', e => {
+      showIdealArc = !showIdealArc;
+      e.target.classList.toggle('active', showIdealArc);
+      drawReviewOverlay();
     });
 
-    document.getElementById('review-settings-btn').addEventListener('click', () => {
+    document.getElementById('toggle-actual').addEventListener('click', e => {
+      showActualPath = !showActualPath;
+      e.target.classList.toggle('active', showActualPath);
+      drawReviewOverlay();
+    });
+
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        document.getElementById('review-video').playbackRate = parseFloat(e.target.dataset.speed);
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+      });
+    });
+
+    document.getElementById('continue-btn').addEventListener('click', () => {
+      clearTrace();
+      showScreen('practice');
+      if (!animationFrame) processFrame();
+    });
+
+    document.getElementById('settings-btn').addEventListener('click', () => {
       stopCamera();
       showScreen('setup');
     });
 
-    window.addEventListener('resize', () => {
-      resizeCanvases();
-      drawOverlay();
-    });
-
+    window.addEventListener('resize', () => { resizeCanvases(); drawOverlay(); });
+    
+    // Initialize
     updateBpm(76);
   </script>
 </body>
