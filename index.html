@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Stroke Trainer - Putting Practice</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      min-height: 100vh; 
+      background: linear-gradient(145deg, #0a0a0a 0%, #1a1a1a 50%, #0d1f0d 100%); 
+      color: #fff; 
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow-x: hidden;
+    }
+    .container { padding: 16px; max-width: 500px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 24px; padding-top: 16px; }
+    .title { 
+      font-size: 28px; font-weight: 700; letter-spacing: 3px; margin: 0 0 4px 0;
+      background: linear-gradient(90deg, #ff6b35, #f7c59f); 
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .title-small { font-size: 20px; color: #fff; font-weight: 600; letter-spacing: 2px; margin: 0; }
+    .subtitle { font-size: 12px; color: rgba(255,255,255,0.5); margin: 0; letter-spacing: 4px; }
+    .setup-card { background: rgba(255,255,255,0.05); border-radius: 20px; padding: 24px; margin-bottom: 24px; }
+    .control-group { margin-bottom: 24px; }
+    .control-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .control-label { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
+    .control-value { font-size: 32px; font-weight: 700; color: #ff6b35; }
+    .control-unit { font-size: 14px; color: rgba(255,255,255,0.5); }
+    input[type="range"] { 
+      width: 100%; height: 8px; border-radius: 4px; appearance: none; cursor: pointer; margin-bottom: 8px;
+      background: linear-gradient(to right, #ff6b35 0%, #ff6b35 53%, rgba(255,255,255,0.2) 53%, rgba(255,255,255,0.2) 100%);
+    }
+    input[type="range"]::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; border-radius: 50%; background: #fff; cursor: pointer; }
+    .slider-labels { display: flex; justify-content: space-between; font-size: 11px; color: rgba(255,255,255,0.4); }
+    .fine-tune-row { display: flex; justify-content: center; gap: 12px; margin-top: 12px; }
+    .fine-tune-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 24px; color: #fff; font-size: 16px; cursor: pointer; }
+    .arc-buttons { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .arc-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 10px 14px; color: #fff; font-size: 14px; cursor: pointer; min-width: 48px; }
+    .arc-btn.active { background: linear-gradient(135deg, #ff6b35, #e55a2b); border: none; font-weight: 600; }
+    .primary-btn { width: 100%; background: linear-gradient(135deg, #ff6b35, #e55a2b); border: none; border-radius: 12px; padding: 16px; color: #fff; font-size: 16px; font-weight: 600; letter-spacing: 1px; cursor: pointer; margin-bottom: 16px; }
+    .secondary-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 14px 24px; color: #fff; font-size: 14px; cursor: pointer; }
+    .info-box { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; border-left: 3px solid rgba(255, 107, 53, 0.5); }
+    .info-text { font-size: 13px; color: rgba(255,255,255,0.6); margin: 0; line-height: 1.8; }
+    .camera-container { position: relative; width: 100%; aspect-ratio: 2/3; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+    .camera-container-full { position: relative; width: 100%; height: 100vh; background: #000; }
+    .video { width: 100%; height: 100%; object-fit: cover; }
+    .overlay-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    .camera-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); }
+    .camera-btn { background: linear-gradient(135deg, #ff6b35, #e55a2b); border: none; border-radius: 50%; width: 72px; height: 72px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .camera-hint { margin-top: 12px; color: rgba(255,255,255,0.5); font-size: 14px; }
+    .calibrate-instructions { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 16px; font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; }
+    .button-row { display: flex; gap: 12px; justify-content: center; }
+    .top-bar { position: absolute; top: 0; left: 0; right: 0; padding: 16px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent); z-index: 10; }
+    .back-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 16px; color: #fff; font-size: 14px; cursor: pointer; }
+    .arc-badge { background: rgba(255, 107, 53, 0.9); border-radius: 8px; padding: 8px 16px; color: #fff; font-size: 14px; font-weight: 600; }
+    .metronome-bar { position: absolute; top: 70px; right: 16px; z-index: 10; }
+    .metronome-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 10px 16px; color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; }
+    .metronome-btn.active { border-color: #4ade80; }
+    .metronome-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; transition: background-color 0.1s; }
+    .bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; display: flex; justify-content: center; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 10; }
+    .record-btn { background: linear-gradient(135deg, #ff6b35, #e55a2b); border: none; border-radius: 30px; padding: 16px 32px; color: #fff; font-size: 16px; font-weight: 600; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+    .stop-btn { background: #ff3b30; border: none; border-radius: 30px; padding: 16px 32px; color: #fff; font-size: 16px; font-weight: 600; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; }
+    .record-dot { width: 12px; height: 12px; border-radius: 50%; background: #fff; }
+    .stop-square { width: 12px; height: 12px; background: #fff; border-radius: 2px; }
+    .review-video-container { width: 100%; aspect-ratio: 2/3; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+    .review-video { width: 100%; height: 100%; object-fit: contain; }
+    .speed-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px; }
+    .speed-label { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
+    .speed-buttons { display: flex; gap: 8px; }
+    .speed-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 14px; color: #fff; font-size: 13px; cursor: pointer; }
+    .speed-btn.active { background: linear-gradient(135deg, #ff6b35, #e55a2b); border: none; font-weight: 600; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+    .metric-card { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px 12px; text-align: center; display: flex; flex-direction: column; gap: 4px; }
+    .metric-label { font-size: 10px; color: rgba(255,255,255,0.5); letter-spacing: 0.5px; }
+    .metric-value { font-size: 24px; font-weight: 700; color: #ff6b35; }
+    .metric-hint { font-size: 10px; color: rgba(255,255,255,0.4); }
+    .error-box { background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: center; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+  <!-- Setup Screen -->
+  <div id="setup-screen" class="container">
+    <div class="header">
+      <h1 class="title">STROKE TRAINER</h1>
+      <p class="subtitle">PUTTING PRACTICE</p>
+    </div>
+    <div class="setup-card">
+      <div class="control-group">
+        <div class="control-header">
+          <span class="control-label">TEMPO</span>
+          <span><span class="control-value" id="bpm-display">76</span> <span class="control-unit">BPM</span></span>
+        </div>
+        <input type="range" id="bpm-slider" min="60" max="90" value="76">
+        <div class="slider-labels"><span>60</span><span>70</span><span>80</span><span>90</span></div>
+        <div class="fine-tune-row">
+          <button class="fine-tune-btn" id="bpm-minus">−1</button>
+          <button class="fine-tune-btn" id="bpm-plus">+1</button>
+        </div>
+      </div>
+      <div class="control-group">
+        <div class="control-header">
+          <span class="control-label">ARC PATH</span>
+          <span class="control-value" id="arc-display">78°</span>
+        </div>
+        <div class="arc-buttons" id="arc-buttons">
+          <button class="arc-btn" data-arc="72">72°</button>
+          <button class="arc-btn" data-arc="74">74°</button>
+          <button class="arc-btn" data-arc="76">76°</button>
+          <button class="arc-btn active" data-arc="78">78°</button>
+          <button class="arc-btn" data-arc="80">80°</button>
+          <button class="arc-btn" data-arc="82">82°</button>
+        </div>
+      </div>
+    </div>
+    <button class="primary-btn" id="start-setup-btn">Start Setup</button>
+    <div class="info-box">
+      <p class="info-text"><strong>Equipment needed:</strong><br>• Phone mounted 2ft above mat<br>• Blue sticker on putter heel (face side)<br>• Pink sticker on putter toe (back side)</p>
+    </div>
+  </div>
+
+  <!-- Calibrate Screen -->
+  <div id="calibrate-screen" class="container hidden">
+    <div class="header"><h1 class="title-small">CALIBRATION</h1></div>
+    <div class="camera-container">
+      <video id="calibrate-video" class="video" autoplay playsinline muted></video>
+      <canvas id="calibrate-canvas" class="overlay-canvas" width="400" height="600"></canvas>
+      <div class="camera-placeholder" id="calibrate-placeholder">
+        <button class="camera-btn" id="calibrate-camera-btn">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 15.2c1.77 0 3.2-1.43 3.2-3.2S13.77 8.8 12 8.8 8.8 10.23 8.8 12s1.43 3.2 3.2 3.2zM9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+        </button>
+        <p class="camera-hint">Tap to start camera</p>
+        <p id="camera-error" style="color: #ff6b35; font-size: 12px; margin-top: 8px; display: none;"></p>
+      </div>
+    </div>
+    <div class="calibrate-instructions">Position camera so mat center line aligns with the white dashed line. Ball position circle should match where you place your ball.</div>
+    <div class="button-row">
+      <button class="secondary-btn" id="calibrate-back-btn">Back</button>
+      <button class="primary-btn" id="confirm-calibrate-btn" style="width: auto;">Confirm & Start</button>
+    </div>
+  </div>
+
+  <!-- Practice Screen -->
+  <div id="practice-screen" class="hidden">
+    <div class="camera-container-full">
+      <video id="practice-video" class="video" autoplay playsinline muted></video>
+      <canvas id="practice-canvas" style="display: none;"></canvas>
+      <canvas id="practice-overlay" class="overlay-canvas" width="400" height="600"></canvas>
+      <div class="top-bar">
+        <button class="back-btn" id="practice-back-btn">← Back</button>
+        <div class="arc-badge" id="practice-arc-badge">78°</div>
+      </div>
+      <div class="metronome-bar">
+        <button class="metronome-btn" id="metronome-btn">
+          <span class="metronome-dot" id="metronome-dot" style="background: #666;"></span>
+          <span id="metronome-bpm">76 BPM</span>
+        </button>
+      </div>
+      <div class="bottom-bar">
+        <button class="record-btn" id="record-btn">
+          <div class="record-dot"></div>
+          RECORD STROKE
+        </button>
+        <button class="stop-btn hidden" id="stop-btn">
+          <div class="stop-square"></div>
+          STOP
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Review Screen -->
+  <div id="review-screen" class="container hidden">
+    <div class="header"><h1 class="title-small">STROKE REVIEW</h1></div>
+    <div class="review-video-container">
+      <video id="review-video" class="review-video" controls loop></video>
+    </div>
+    <div class="speed-controls">
+      <span class="speed-label">SPEED</span>
+      <div class="speed-buttons" id="speed-buttons">
+        <button class="speed-btn" data-speed="0.25">0.25x</button>
+        <button class="speed-btn" data-speed="0.5">0.5x</button>
+        <button class="speed-btn active" data-speed="1">1x</button>
+        <button class="speed-btn" data-speed="2">2x</button>
+      </div>
+    </div>
+    <div class="metrics-grid" id="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-label">FACE AT IMPACT</span>
+        <span class="metric-value" id="face-metric">0°</span>
+        <span class="metric-hint" id="face-hint">Square</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">TEMPO</span>
+        <span class="metric-value" id="tempo-metric">0s</span>
+        <span class="metric-hint">Backswing to impact</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-label">PATH</span>
+        <span class="metric-value" id="path-metric">0px</span>
+        <span class="metric-hint">Lateral deviation</span>
+      </div>
+    </div>
+    <div class="error-box hidden" id="error-box">
+      <p id="error-message"></p>
+      <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 8px;">Make sure stickers are visible and try again</p>
+    </div>
+    <div class="button-row">
+      <button class="primary-btn" id="record-another-btn" style="width: auto;">Record Another</button>
+      <button class="secondary-btn" id="review-settings-btn">Settings</button>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let bpm = 76;
+    let arcDegree = 78;
+    let metronomeOn = false;
+    let cameraActive = false;
+    let isRecording = false;
+    let stream = null;
+    let mediaRecorder = null;
+    let recordedChunks = [];
+    let trackingData = [];
+    let audioContext = null;
+    let metronomeInterval = null;
+    let animationFrame = null;
+    let beat = false;
+
+    // Elements
+    const screens = {
+      setup: document.getElementById('setup-screen'),
+      calibrate: document.getElementById('calibrate-screen'),
+      practice: document.getElementById('practice-screen'),
+      review: document.getElementById('review-screen')
+    };
+
+    // Show screen
+    function showScreen(name) {
+      Object.values(screens).forEach(s => s.classList.add('hidden'));
+      screens[name].classList.remove('hidden');
+      if (name === 'practice' || name === 'calibrate') {
+        setTimeout(drawOverlay, 100);
+      }
+    }
+
+    // BPM Controls
+    const bpmSlider = document.getElementById('bpm-slider');
+    const bpmDisplay = document.getElementById('bpm-display');
+    
+    function updateBpm(value) {
+      bpm = Math.max(60, Math.min(90, value));
+      bpmSlider.value = bpm;
+      bpmDisplay.textContent = bpm;
+      document.getElementById('metronome-bpm').textContent = bpm + ' BPM';
+      bpmSlider.style.background = `linear-gradient(to right, #ff6b35 0%, #ff6b35 ${((bpm - 60) / 30) * 100}%, rgba(255,255,255,0.2) ${((bpm - 60) / 30) * 100}%, rgba(255,255,255,0.2) 100%)`;
+    }
+    
+    bpmSlider.addEventListener('input', (e) => updateBpm(parseInt(e.target.value)));
+    document.getElementById('bpm-minus').addEventListener('click', () => updateBpm(bpm - 1));
+    document.getElementById('bpm-plus').addEventListener('click', () => updateBpm(bpm + 1));
+
+    // Arc Controls
+    document.getElementById('arc-buttons').addEventListener('click', (e) => {
+      if (e.target.dataset.arc) {
+        arcDegree = parseInt(e.target.dataset.arc);
+        document.getElementById('arc-display').textContent = arcDegree + '°';
+        document.getElementById('practice-arc-badge').textContent = arcDegree + '°';
+        document.querySelectorAll('.arc-btn').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+      }
+    });
+
+    // Camera
+    async function startCamera(videoElement) {
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 }, frameRate: { ideal: 60, min: 30 } }
+        });
+        videoElement.srcObject = stream;
+        cameraActive = true;
+        document.getElementById('calibrate-placeholder').classList.add('hidden');
+        return true;
+      } catch (err) {
+        document.getElementById('camera-error').textContent = 'Camera access denied. Please allow camera permissions.';
+        document.getElementById('camera-error').style.display = 'block';
+        return false;
+      }
+    }
+
+    function stopCamera() {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+        stream = null;
+      }
+      cameraActive = false;
+    }
+
+    // Audio
+    function initAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+
+    function playClick() {
+      if (!audioContext) return;
+      if (audioContext.state === 'suspended') audioContext.resume();
+      
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscillator.frequency.value = 800;
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.08);
+      oscillator.start(audioContext.currentTime);
+      oscillator.stop(audioContext.currentTime + 0.08);
+      
+      const dot = document.getElementById('metronome-dot');
+      dot.style.background = '#ff6b35';
+      setTimeout(() => { dot.style.background = metronomeOn ? '#4ade80' : '#666'; }, 80);
+    }
+
+    function toggleMetronome() {
+      initAudio();
+      metronomeOn = !metronomeOn;
+      const btn = document.getElementById('metronome-btn');
+      const dot = document.getElementById('metronome-dot');
+      
+      if (metronomeOn) {
+        btn.classList.add('active');
+        dot.style.background = '#4ade80';
+        playClick();
+        metronomeInterval = setInterval(playClick, (60 / bpm) * 1000);
+      } else {
+        btn.classList.remove('active');
+        dot.style.background = '#666';
+        if (metronomeInterval) clearInterval(metronomeInterval);
+      }
+    }
+
+    // Drawing
+    function drawOverlay() {
+      const canvas = document.getElementById('practice-overlay') || document.getElementById('calibrate-canvas');
+      if (!canvas) return;
+      
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      
+      const centerX = canvas.width / 2;
+      const ballY = canvas.height * 0.65;
+      const arcRadius = canvas.height * 0.4;
+      const halfArc = ((180 - arcDegree) / 2) * (Math.PI / 180);
+      const startAngle = Math.PI + halfArc;
+      const endAngle = 2 * Math.PI - halfArc;
+      
+      // Arc path
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(255, 107, 53, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 4]);
+      ctx.arc(centerX, ballY - arcRadius * 0.6, arcRadius, startAngle, endAngle);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Tick marks
+      const numTicks = 9;
+      for (let i = 0; i <= numTicks; i++) {
+        const t = i / numTicks;
+        const angle = startAngle + t * (endAngle - startAngle);
+        const x = centerX + arcRadius * Math.cos(angle);
+        const y = (ballY - arcRadius * 0.6) + arcRadius * Math.sin(angle);
+        const perpAngle = angle + Math.PI / 2;
+        const tickLength = 15;
+        
+        ctx.beginPath();
+        ctx.strokeStyle = i === Math.floor(numTicks / 2) ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 107, 53, 0.6)';
+        ctx.lineWidth = i === Math.floor(numTicks / 2) ? 3 : 2;
+        ctx.moveTo(x - tickLength * Math.cos(perpAngle), y - tickLength * Math.sin(perpAngle));
+        ctx.lineTo(x + tickLength * Math.cos(perpAngle), y + tickLength * Math.sin(perpAngle));
+        ctx.stroke();
+      }
+      
+      // Center line
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.moveTo(centerX, 20);
+      ctx.lineTo(centerX, canvas.height - 20);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      
+      // Ball circle
+      ctx.beginPath();
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.lineWidth = 2;
+      ctx.arc(centerX, ballY, 18, 0, 2 * Math.PI);
+      ctx.stroke();
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+      ctx.font = '11px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('BALL', centerX, ballY + 32);
+      
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+      ctx.font = 'bold 12px system-ui';
+      ctx.fillText(arcDegree + '° ARC', centerX, 16);
+    }
+
+    // Color detection
+    function detectColorPosition(imageData, targetColor, width, height) {
+      const data = imageData.data;
+      let sumX = 0, sumY = 0, count = 0;
+      const colorRanges = {
+        blue: { rMin: 0, rMax: 120, gMin: 80, gMax: 220, bMin: 160, bMax: 255 },
+        pink: { rMin: 180, rMax: 255, gMin: 80, gMax: 180, bMin: 130, bMax: 230 }
+      };
+      const range = colorRanges[targetColor];
+      if (!range) return null;
+      
+      for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+          const i = (y * width + x) * 4;
+          const r = data[i], g = data[i + 1], b = data[i + 2];
+          if (r >= range.rMin && r <= range.rMax && g >= range.gMin && g <= range.gMax && b >= range.bMin && b <= range.bMax) {
+            sumX += x; sumY += y; count++;
+          }
+        }
+      }
+      if (count > 10) return { x: sumX / count, y: sumY / count, confidence: count };
+      return null;
+    }
+
+    // Process frame
+    function processFrame() {
+      if (!isRecording) return;
+      
+      const video = document.getElementById('practice-video');
+      const canvas = document.getElementById('practice-canvas');
+      const ctx = canvas.getContext('2d');
+      
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      ctx.drawImage(video, 0, 0);
+      
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const bluePos = detectColorPosition(imageData, 'blue', canvas.width, canvas.height);
+      const pinkPos = detectColorPosition(imageData, 'pink', canvas.width, canvas.height);
+      
+      if (bluePos && pinkPos) {
+        const dx = pinkPos.x - bluePos.x;
+        const dy = pinkPos.y - bluePos.y;
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        const faceAngle = 90 - Math.abs(angle);
+        const centerX = (bluePos.x + pinkPos.x) / 2;
+        const centerY = (bluePos.y + pinkPos.y) / 2;
+        
+        trackingData.push({ timestamp: Date.now(), bluePos, pinkPos, centerX, centerY, faceAngle: faceAngle.toFixed(1) });
+      }
+      
+      animationFrame = requestAnimationFrame(processFrame);
+    }
+
+    // Recording
+    function startRecording() {
+      if (!stream) return;
+      
+      recordedChunks = [];
+      trackingData = [];
+      
+      const options = { mimeType: 'video/webm;codecs=vp9' };
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+        options.mimeType = 'video/webm';
+      }
+      
+      mediaRecorder = new MediaRecorder(stream, options);
+      mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(recordedChunks, { type: 'video/webm' });
+        document.getElementById('review-video').src = URL.createObjectURL(blob);
+        calculateMetrics();
+      };
+      
+      mediaRecorder.start(100);
+      isRecording = true;
+      document.getElementById('record-btn').classList.add('hidden');
+      document.getElementById('stop-btn').classList.remove('hidden');
+      processFrame();
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        isRecording = false;
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+        document.getElementById('record-btn').classList.remove('hidden');
+        document.getElementById('stop-btn').classList.add('hidden');
+      }
+    }
+
+    // Calculate metrics
+    function calculateMetrics() {
+      const errorBox = document.getElementById('error-box');
+      const metricsGrid = document.getElementById('metrics-grid');
+      
+      if (trackingData.length < 10) {
+        errorBox.classList.remove('hidden');
+        metricsGrid.classList.add('hidden');
+        document.getElementById('error-message').textContent = 'Not enough tracking data';
+        showScreen('review');
+        return;
+      }
+      
+      errorBox.classList.add('hidden');
+      metricsGrid.classList.remove('hidden');
+      
+      const ballY = 350;
+      let impactIndex = 0, minDist = Infinity;
+      trackingData.forEach((point, index) => {
+        const dist = Math.abs(point.centerY - ballY);
+        if (dist < minDist) { minDist = dist; impactIndex = index; }
+      });
+      
+      const impactPoint = trackingData[impactIndex];
+      const tempo = ((impactPoint.timestamp - trackingData[0].timestamp) / 1000).toFixed(2);
+      const faceAtImpact = parseFloat(impactPoint.faceAngle);
+      
+      const centerXValues = trackingData.slice(0, impactIndex).map(p => p.centerX);
+      const avgX = centerXValues.reduce((a, b) => a + b, 0) / centerXValues.length;
+      const variance = centerXValues.reduce((sum, x) => sum + Math.pow(x - avgX, 2), 0) / centerXValues.length;
+      const pathDeviation = Math.sqrt(variance).toFixed(1);
+      
+      const faceMetric = document.getElementById('face-metric');
+      faceMetric.textContent = faceAtImpact.toFixed(1) + '°';
+      faceMetric.style.color = Math.abs(faceAtImpact) < 1 ? '#4ade80' : Math.abs(faceAtImpact) < 2 ? '#fbbf24' : '#ff6b35';
+      document.getElementById('face-hint').textContent = faceAtImpact > 0.5 ? 'Open' : faceAtImpact < -0.5 ? 'Closed' : 'Square';
+      document.getElementById('tempo-metric').textContent = tempo + 's';
+      document.getElementById('path-metric').textContent = pathDeviation + 'px';
+      
+      showScreen('review');
+    }
+
+    // Speed controls
+    document.getElementById('speed-buttons').addEventListener('click', (e) => {
+      if (e.target.dataset.speed) {
+        const speed = parseFloat(e.target.dataset.speed);
+        document.getElementById('review-video').playbackRate = speed;
+        document.querySelectorAll('.speed-btn').forEach(btn => btn.classList.remove('active'));
+        e.target.classList.add('active');
+      }
+    });
+
+    // Navigation
+    document.getElementById('start-setup-btn').addEventListener('click', async () => {
+      showScreen('calibrate');
+      const video = document.getElementById('calibrate-video');
+      await startCamera(video);
+      drawOverlay();
+    });
+
+    document.getElementById('calibrate-camera-btn').addEventListener('click', async () => {
+      const video = document.getElementById('calibrate-video');
+      await startCamera(video);
+    });
+
+    document.getElementById('calibrate-back-btn').addEventListener('click', () => {
+      stopCamera();
+      showScreen('setup');
+    });
+
+    document.getElementById('confirm-calibrate-btn').addEventListener('click', () => {
+      const practiceVideo = document.getElementById('practice-video');
+      practiceVideo.srcObject = stream;
+      showScreen('practice');
+      drawOverlay();
+    });
+
+    document.getElementById('practice-back-btn').addEventListener('click', () => {
+      stopRecording();
+      if (metronomeOn) toggleMetronome();
+      stopCamera();
+      showScreen('setup');
+    });
+
+    document.getElementById('metronome-btn').addEventListener('click', toggleMetronome);
+    document.getElementById('record-btn').addEventListener('click', startRecording);
+    document.getElementById('stop-btn').addEventListener('click', stopRecording);
+
+    document.getElementById('record-another-btn').addEventListener('click', () => {
+      showScreen('practice');
+    });
+
+    document.getElementById('review-settings-btn').addEventListener('click', () => {
+      stopCamera();
+      showScreen('setup');
+    });
+
+    // Initial setup
+    updateBpm(76);
+  </script>
+</body>
+</html>
