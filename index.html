@@ -43,15 +43,15 @@
     .secondary-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 14px 24px; color: #fff; font-size: 14px; cursor: pointer; }
     .info-box { background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; border-left: 3px solid rgba(255, 107, 53, 0.5); }
     .info-text { font-size: 13px; color: rgba(255,255,255,0.6); margin: 0; line-height: 1.8; }
-    .camera-container { position: relative; width: 100%; aspect-ratio: 2/3; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
-    .camera-container-full { position: relative; width: 100%; height: 100vh; background: #000; }
+    .camera-container { position: relative; width: 100%; aspect-ratio: 3/4; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+    .camera-container-full { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; }
     .video { width: 100%; height: 100%; object-fit: cover; }
     .overlay-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
     .camera-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0,0,0,0.9); }
     .camera-btn { background: linear-gradient(135deg, #ff6b35, #e55a2b); border: none; border-radius: 50%; width: 72px; height: 72px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
     .camera-hint { margin-top: 12px; color: rgba(255,255,255,0.5); font-size: 14px; }
     .calibrate-instructions { background: rgba(255,255,255,0.05); border-radius: 12px; padding: 16px; margin-bottom: 16px; font-size: 14px; color: rgba(255,255,255,0.7); line-height: 1.6; }
-    .button-row { display: flex; gap: 12px; justify-content: center; }
+    .button-row { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
     .top-bar { position: absolute; top: 0; left: 0; right: 0; padding: 16px; display: flex; justify-content: space-between; align-items: center; background: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent); z-index: 10; }
     .back-btn { background: rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 16px; color: #fff; font-size: 14px; cursor: pointer; }
     .arc-badge { background: rgba(255, 107, 53, 0.9); border-radius: 8px; padding: 8px 16px; color: #fff; font-size: 14px; font-weight: 600; }
@@ -59,12 +59,12 @@
     .metronome-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 20px; padding: 10px 16px; color: #fff; font-size: 14px; cursor: pointer; display: flex; align-items: center; }
     .metronome-btn.active { border-color: #4ade80; }
     .metronome-dot { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; transition: background-color 0.1s; }
-    .bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; display: flex; justify-content: center; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 10; }
+    .bottom-bar { position: absolute; bottom: 0; left: 0; right: 0; padding: 24px; display: flex; justify-content: center; gap: 12px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); z-index: 10; }
     .record-btn { background: linear-gradient(135deg, #ff6b35, #e55a2b); border: none; border-radius: 30px; padding: 16px 32px; color: #fff; font-size: 16px; font-weight: 600; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; }
     .stop-btn { background: #ff3b30; border: none; border-radius: 30px; padding: 16px 32px; color: #fff; font-size: 16px; font-weight: 600; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; gap: 12px; }
     .record-dot { width: 12px; height: 12px; border-radius: 50%; background: #fff; }
     .stop-square { width: 12px; height: 12px; background: #fff; border-radius: 2px; }
-    .review-video-container { width: 100%; aspect-ratio: 2/3; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
+    .review-video-container { width: 100%; aspect-ratio: 3/4; background: #000; border-radius: 16px; overflow: hidden; margin-bottom: 16px; }
     .review-video { width: 100%; height: 100%; object-fit: contain; }
     .speed-controls { display: flex; align-items: center; justify-content: center; gap: 16px; margin-bottom: 20px; }
     .speed-label { font-size: 12px; color: rgba(255,255,255,0.5); letter-spacing: 1px; }
@@ -78,6 +78,13 @@
     .metric-hint { font-size: 10px; color: rgba(255,255,255,0.4); }
     .error-box { background: rgba(255, 59, 48, 0.1); border: 1px solid rgba(255, 59, 48, 0.3); border-radius: 12px; padding: 16px; margin-bottom: 20px; text-align: center; }
     .hidden { display: none !important; }
+    .adjust-btn { background: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px 12px; color: #fff; font-size: 12px; cursor: pointer; }
+    .adjust-panel { position: absolute; top: 120px; right: 16px; background: rgba(0,0,0,0.8); border-radius: 12px; padding: 12px; z-index: 20; min-width: 150px; }
+    .adjust-panel.hidden { display: none; }
+    .adjust-row { margin-bottom: 12px; }
+    .adjust-row:last-child { margin-bottom: 0; }
+    .adjust-label { font-size: 10px; color: rgba(255,255,255,0.5); margin-bottom: 4px; display: block; }
+    .adjust-slider { width: 100%; }
   </style>
 </head>
 <body>
@@ -117,16 +124,16 @@
     </div>
     <button class="primary-btn" id="start-setup-btn">Start Setup</button>
     <div class="info-box">
-      <p class="info-text"><strong>Equipment needed:</strong><br>• Phone mounted 2ft above mat<br>• Blue sticker on putter heel (face side)<br>• Pink sticker on putter toe (back side)</p>
+      <p class="info-text"><strong>Equipment needed:</strong><br>• Phone mounted 2-3ft above mat<br>• Blue sticker on putter heel (face side)<br>• Pink sticker on putter toe (back side)</p>
     </div>
   </div>
 
   <!-- Calibrate Screen -->
   <div id="calibrate-screen" class="container hidden">
     <div class="header"><h1 class="title-small">CALIBRATION</h1></div>
-    <div class="camera-container">
+    <div class="camera-container" id="calibrate-camera-container">
       <video id="calibrate-video" class="video" autoplay playsinline muted></video>
-      <canvas id="calibrate-canvas" class="overlay-canvas" width="400" height="600"></canvas>
+      <canvas id="calibrate-canvas" class="overlay-canvas"></canvas>
       <div class="camera-placeholder" id="calibrate-placeholder">
         <button class="camera-btn" id="calibrate-camera-btn">
           <svg width="32" height="32" viewBox="0 0 24 24" fill="white"><path d="M12 15.2c1.77 0 3.2-1.43 3.2-3.2S13.77 8.8 12 8.8 8.8 10.23 8.8 12s1.43 3.2 3.2 3.2zM9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
@@ -135,7 +142,7 @@
         <p id="camera-error" style="color: #ff6b35; font-size: 12px; margin-top: 8px; display: none;"></p>
       </div>
     </div>
-    <div class="calibrate-instructions">Position camera so mat center line aligns with the white dashed line. Ball position circle should match where you place your ball.</div>
+    <div class="calibrate-instructions">Align the white dashed line with your mat's center line. Adjust ball position and arc size using the sliders after tapping "Confirm & Start".</div>
     <div class="button-row">
       <button class="secondary-btn" id="calibrate-back-btn">Back</button>
       <button class="primary-btn" id="confirm-calibrate-btn" style="width: auto;">Confirm & Start</button>
@@ -147,11 +154,29 @@
     <div class="camera-container-full">
       <video id="practice-video" class="video" autoplay playsinline muted></video>
       <canvas id="practice-canvas" style="display: none;"></canvas>
-      <canvas id="practice-overlay" class="overlay-canvas" width="400" height="600"></canvas>
+      <canvas id="practice-overlay" class="overlay-canvas"></canvas>
       <div class="top-bar">
         <button class="back-btn" id="practice-back-btn">← Back</button>
+        <button class="adjust-btn" id="adjust-toggle-btn">⚙ Adjust</button>
         <div class="arc-badge" id="practice-arc-badge">78°</div>
       </div>
+      
+      <!-- Adjustment Panel -->
+      <div class="adjust-panel hidden" id="adjust-panel">
+        <div class="adjust-row">
+          <label class="adjust-label">BALL POSITION (vertical)</label>
+          <input type="range" class="adjust-slider" id="ball-y-slider" min="30" max="80" value="55">
+        </div>
+        <div class="adjust-row">
+          <label class="adjust-label">ARC SIZE</label>
+          <input type="range" class="adjust-slider" id="arc-size-slider" min="10" max="40" value="20">
+        </div>
+        <div class="adjust-row">
+          <label class="adjust-label">ARC HEIGHT</label>
+          <input type="range" class="adjust-slider" id="arc-height-slider" min="5" max="40" value="15">
+        </div>
+      </div>
+      
       <div class="metronome-bar">
         <button class="metronome-btn" id="metronome-btn">
           <span class="metronome-dot" id="metronome-dot" style="background: #666;"></span>
@@ -227,7 +252,11 @@
     let audioContext = null;
     let metronomeInterval = null;
     let animationFrame = null;
-    let beat = false;
+    
+    // Adjustable overlay settings
+    let ballYPercent = 55; // Ball position as % from top
+    let arcSizePercent = 20; // Arc radius as % of screen height
+    let arcHeightPercent = 15; // How far above ball the arc center is
 
     // Elements
     const screens = {
@@ -242,7 +271,26 @@
       Object.values(screens).forEach(s => s.classList.add('hidden'));
       screens[name].classList.remove('hidden');
       if (name === 'practice' || name === 'calibrate') {
-        setTimeout(drawOverlay, 100);
+        requestAnimationFrame(() => {
+          resizeCanvases();
+          drawOverlay();
+        });
+      }
+    }
+
+    // Resize canvases to match video
+    function resizeCanvases() {
+      const calibrateContainer = document.getElementById('calibrate-camera-container');
+      const calibrateCanvas = document.getElementById('calibrate-canvas');
+      if (calibrateContainer && calibrateCanvas) {
+        calibrateCanvas.width = calibrateContainer.offsetWidth;
+        calibrateCanvas.height = calibrateContainer.offsetHeight;
+      }
+      
+      const practiceOverlay = document.getElementById('practice-overlay');
+      if (practiceOverlay) {
+        practiceOverlay.width = window.innerWidth;
+        practiceOverlay.height = window.innerHeight;
       }
     }
 
@@ -270,7 +318,27 @@
         document.getElementById('practice-arc-badge').textContent = arcDegree + '°';
         document.querySelectorAll('.arc-btn').forEach(btn => btn.classList.remove('active'));
         e.target.classList.add('active');
+        drawOverlay();
       }
+    });
+
+    // Adjustment panel toggle
+    document.getElementById('adjust-toggle-btn').addEventListener('click', () => {
+      document.getElementById('adjust-panel').classList.toggle('hidden');
+    });
+
+    // Adjustment sliders
+    document.getElementById('ball-y-slider').addEventListener('input', (e) => {
+      ballYPercent = parseInt(e.target.value);
+      drawOverlay();
+    });
+    document.getElementById('arc-size-slider').addEventListener('input', (e) => {
+      arcSizePercent = parseInt(e.target.value);
+      drawOverlay();
+    });
+    document.getElementById('arc-height-slider').addEventListener('input', (e) => {
+      arcHeightPercent = parseInt(e.target.value);
+      drawOverlay();
     });
 
     // Camera
@@ -282,6 +350,12 @@
         videoElement.srcObject = stream;
         cameraActive = true;
         document.getElementById('calibrate-placeholder').classList.add('hidden');
+        
+        // Wait for video to be ready then resize canvases
+        videoElement.onloadedmetadata = () => {
+          resizeCanvases();
+          drawOverlay();
+        };
         return true;
       } catch (err) {
         document.getElementById('camera-error').textContent = 'Camera access denied. Please allow camera permissions.';
@@ -343,73 +417,92 @@
       }
     }
 
-    // Drawing
+    // Drawing overlay
     function drawOverlay() {
-      const canvas = document.getElementById('practice-overlay') || document.getElementById('calibrate-canvas');
-      if (!canvas) return;
+      // Draw on calibrate canvas
+      const calibrateCanvas = document.getElementById('calibrate-canvas');
+      if (calibrateCanvas && calibrateCanvas.width > 0) {
+        drawOnCanvas(calibrateCanvas);
+      }
       
+      // Draw on practice canvas
+      const practiceCanvas = document.getElementById('practice-overlay');
+      if (practiceCanvas && practiceCanvas.width > 0) {
+        drawOnCanvas(practiceCanvas);
+      }
+    }
+    
+    function drawOnCanvas(canvas) {
       const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const width = canvas.width;
+      const height = canvas.height;
       
-      const centerX = canvas.width / 2;
-      const ballY = canvas.height * 0.65;
-      const arcRadius = canvas.height * 0.4;
+      ctx.clearRect(0, 0, width, height);
+      
+      const centerX = width / 2;
+      const ballY = height * (ballYPercent / 100);
+      const arcRadius = height * (arcSizePercent / 100);
+      const arcCenterY = ballY - height * (arcHeightPercent / 100);
+      
+      // Arc angles based on arc degree setting
       const halfArc = ((180 - arcDegree) / 2) * (Math.PI / 180);
       const startAngle = Math.PI + halfArc;
       const endAngle = 2 * Math.PI - halfArc;
       
-      // Arc path
+      // Draw arc path
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255, 107, 53, 0.8)';
-      ctx.lineWidth = 2;
-      ctx.setLineDash([8, 4]);
-      ctx.arc(centerX, ballY - arcRadius * 0.6, arcRadius, startAngle, endAngle);
+      ctx.strokeStyle = 'rgba(255, 107, 53, 0.9)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 6]);
+      ctx.arc(centerX, arcCenterY, arcRadius, startAngle, endAngle);
       ctx.stroke();
       ctx.setLineDash([]);
       
-      // Tick marks
+      // Draw square-to-path tick marks
       const numTicks = 9;
       for (let i = 0; i <= numTicks; i++) {
         const t = i / numTicks;
         const angle = startAngle + t * (endAngle - startAngle);
         const x = centerX + arcRadius * Math.cos(angle);
-        const y = (ballY - arcRadius * 0.6) + arcRadius * Math.sin(angle);
+        const y = arcCenterY + arcRadius * Math.sin(angle);
         const perpAngle = angle + Math.PI / 2;
-        const tickLength = 15;
+        const tickLength = 12;
         
         ctx.beginPath();
-        ctx.strokeStyle = i === Math.floor(numTicks / 2) ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 107, 53, 0.6)';
-        ctx.lineWidth = i === Math.floor(numTicks / 2) ? 3 : 2;
+        ctx.strokeStyle = i === Math.floor(numTicks / 2) ? 'rgba(255, 255, 255, 1)' : 'rgba(255, 107, 53, 0.7)';
+        ctx.lineWidth = i === Math.floor(numTicks / 2) ? 4 : 2;
         ctx.moveTo(x - tickLength * Math.cos(perpAngle), y - tickLength * Math.sin(perpAngle));
         ctx.lineTo(x + tickLength * Math.cos(perpAngle), y + tickLength * Math.sin(perpAngle));
         ctx.stroke();
       }
       
-      // Center line
+      // Draw center target line (white dashed)
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-      ctx.lineWidth = 1;
-      ctx.setLineDash([4, 4]);
-      ctx.moveTo(centerX, 20);
-      ctx.lineTo(centerX, canvas.height - 20);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 8]);
+      ctx.moveTo(centerX, 0);
+      ctx.lineTo(centerX, height);
       ctx.stroke();
       ctx.setLineDash([]);
       
-      // Ball circle
+      // Draw ball position circle
       ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.lineWidth = 2;
-      ctx.arc(centerX, ballY, 18, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
+      ctx.lineWidth = 3;
+      ctx.arc(centerX, ballY, 20, 0, 2 * Math.PI);
       ctx.stroke();
       
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-      ctx.font = '11px system-ui';
+      // Ball label
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+      ctx.font = 'bold 14px system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText('BALL', centerX, ballY + 32);
+      ctx.fillText('BALL', centerX, ballY + 38);
       
+      // Arc degree label at top
       ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-      ctx.font = 'bold 12px system-ui';
-      ctx.fillText(arcDegree + '° ARC', centerX, 16);
+      ctx.font = 'bold 16px system-ui';
+      ctx.fillText(arcDegree + '° ARC', centerX, 30);
     }
 
     // Color detection
@@ -511,7 +604,7 @@
       if (trackingData.length < 10) {
         errorBox.classList.remove('hidden');
         metricsGrid.classList.add('hidden');
-        document.getElementById('error-message').textContent = 'Not enough tracking data';
+        document.getElementById('error-message').textContent = 'Not enough tracking data. Make sure stickers are visible.';
         showScreen('review');
         return;
       }
@@ -519,7 +612,10 @@
       errorBox.classList.add('hidden');
       metricsGrid.classList.remove('hidden');
       
-      const ballY = 350;
+      // Find impact point based on ball Y position
+      const practiceCanvas = document.getElementById('practice-canvas');
+      const ballY = practiceCanvas.height * (ballYPercent / 100);
+      
       let impactIndex = 0, minDist = Infinity;
       trackingData.forEach((point, index) => {
         const dist = Math.abs(point.centerY - ballY);
@@ -560,7 +656,6 @@
       showScreen('calibrate');
       const video = document.getElementById('calibrate-video');
       await startCamera(video);
-      drawOverlay();
     });
 
     document.getElementById('calibrate-camera-btn').addEventListener('click', async () => {
@@ -577,7 +672,6 @@
       const practiceVideo = document.getElementById('practice-video');
       practiceVideo.srcObject = stream;
       showScreen('practice');
-      drawOverlay();
     });
 
     document.getElementById('practice-back-btn').addEventListener('click', () => {
@@ -598,6 +692,12 @@
     document.getElementById('review-settings-btn').addEventListener('click', () => {
       stopCamera();
       showScreen('setup');
+    });
+
+    // Handle resize
+    window.addEventListener('resize', () => {
+      resizeCanvases();
+      drawOverlay();
     });
 
     // Initial setup
