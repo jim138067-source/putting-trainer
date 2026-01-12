@@ -169,8 +169,8 @@
           <input type="range" class="adjust-slider" id="ball-y-slider" min="30" max="80" value="55">
         </div>
         <div class="adjust-row">
-          <label class="adjust-label">ARC CURVE <span class="adjust-value" id="arc-curve-value">150</span></label>
-          <input type="range" class="adjust-slider" id="arc-curve-slider" min="50" max="400" value="150">
+          <label class="adjust-label">ARC CURVE <span class="adjust-value" id="arc-curve-value">15</span></label>
+          <input type="range" class="adjust-slider" id="arc-curve-slider" min="5" max="50" value="15">
         </div>
         <div class="adjust-row">
           <label class="adjust-label">ARC LENGTH <span class="adjust-value" id="arc-length-value">35%</span></label>
@@ -258,10 +258,10 @@
     let metronomeInterval = null;
     let animationFrame = null;
     
-    // Adjustable overlay settings - tuned for WellStroke mat
+    // Adjustable overlay settings - SUBTLE curve, curves LEFT
     let ballYPercent = 55;      // Ball position as % from top
-    let arcCurveRadius = 150;   // Radius of the arc curve (controls how curved it is)
-    let arcLengthPercent = 35;  // How long the arc extends (% of screen height)
+    let arcCurveAmount = 15;    // How much the arc curves (pixels at max)
+    let arcLengthPercent = 35;  // How far the arc extends (% of screen height)
     let arcOffsetX = 0;         // Horizontal offset to align with mat
 
     // Elements
@@ -340,8 +340,8 @@
       drawOverlay();
     });
     document.getElementById('arc-curve-slider').addEventListener('input', (e) => {
-      arcCurveRadius = parseInt(e.target.value);
-      document.getElementById('arc-curve-value').textContent = arcCurveRadius;
+      arcCurveAmount = parseInt(e.target.value);
+      document.getElementById('arc-curve-value').textContent = arcCurveAmount;
       drawOverlay();
     });
     document.getElementById('arc-length-slider').addEventListener('input', (e) => {
@@ -430,7 +430,7 @@
       }
     }
 
-    // Drawing overlay - CORRECTED for putting stroke path
+    // Drawing overlay - Arc curves to the LEFT (inside for right-handed golfer)
     function drawOverlay() {
       const calibrateCanvas = document.getElementById('calibrate-canvas');
       if (calibrateCanvas && calibrateCanvas.width > 0) {
@@ -454,41 +454,29 @@
       const ballY = height * (ballYPercent / 100);
       const arcLength = height * (arcLengthPercent / 100);
       
-      // The arc curves to the RIGHT (inside) on backswing (below ball)
-      // and curves to the LEFT (inside) on follow-through (above ball)
-      // Arc center is to the right of the target line for a right-handed golfer
-      
-      // Calculate arc center based on arc degree
+      // Calculate curve factor based on arc degree
       // Lower degree = more curve, higher degree = straighter
-      // At 72°, the arc curves more; at 82°, it's nearly straight
-      const curveFactor = (90 - arcDegree) / 18; // 0 at 90°, 1 at 72°
-      const arcCenterX = centerX + (arcCurveRadius * curveFactor);
+      const curveFactor = (90 - arcDegree) / 18; // 1 at 72°, 0 at 90°
+      const maxCurve = arcCurveAmount * curveFactor;
       
-      // Calculate the actual radius to pass through ball position
-      const radius = Math.abs(arcCenterX - centerX) + 1;
-      
-      // Draw the arc path - vertical arc that curves right
-      ctx.beginPath();
-      ctx.strokeStyle = 'rgba(255, 107, 53, 0.9)';
-      ctx.lineWidth = 3;
-      ctx.setLineDash([10, 6]);
-      
-      // Draw arc as a series of points for more control
+      // Draw the arc path - curves to the LEFT
       const numPoints = 50;
       const startY = ballY + arcLength; // Backswing end (bottom)
       const endY = ballY - arcLength;   // Follow-through end (top)
       
       ctx.beginPath();
+      ctx.strokeStyle = 'rgba(255, 107, 53, 0.9)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([10, 6]);
+      
       for (let i = 0; i <= numPoints; i++) {
         const t = i / numPoints;
         const y = startY + (endY - startY) * t;
         
-        // Calculate x offset based on position along stroke
-        // Maximum curve at ends, straight at impact (ball position)
-        const distFromBall = Math.abs(y - ballY) / arcLength;
-        const xOffset = distFromBall * distFromBall * arcCurveRadius * curveFactor * 0.3;
+        // Calculate x offset - parabolic curve, max at ends, 0 at ball
+        const distFromBall = (y - ballY) / arcLength; // -1 to 1
+        const xOffset = -maxCurve * distFromBall * distFromBall; // Negative = LEFT
         
-        // Curve goes to the right (for right-handed golfer viewing from above)
         const x = centerX + xOffset;
         
         if (i === 0) {
@@ -505,19 +493,13 @@
       for (let i = 0; i <= numTicks; i++) {
         const t = i / numTicks;
         const y = startY + (endY - startY) * t;
-        const distFromBall = Math.abs(y - ballY) / arcLength;
-        const xOffset = distFromBall * distFromBall * arcCurveRadius * curveFactor * 0.3;
+        const distFromBall = (y - ballY) / arcLength;
+        const xOffset = -maxCurve * distFromBall * distFromBall;
         const x = centerX + xOffset;
         
-        // Calculate tangent angle at this point
-        const dy = (endY - startY) / numPoints;
-        const nextDistFromBall = Math.abs(y + dy - ballY) / arcLength;
-        const nextXOffset = nextDistFromBall * nextDistFromBall * arcCurveRadius * curveFactor * 0.3;
-        const dx = nextXOffset - xOffset;
-        
-        // Perpendicular to tangent
-        const tangentAngle = Math.atan2(dy, dx);
-        const perpAngle = tangentAngle + Math.PI / 2;
+        // Calculate tangent direction for perpendicular tick
+        const slope = -2 * maxCurve * distFromBall / arcLength;
+        const perpAngle = Math.atan(slope) + Math.PI / 2;
         const tickLength = 12;
         
         const isCenter = i === Math.floor(numTicks / 2);
@@ -774,4 +756,3 @@
   </script>
 </body>
 </html>
-
